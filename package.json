@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
+    "build": "prisma generate && nest build",
     "start": "node dist/main.js",
     "start:prod": "npm run build && node dist/main.js",
     "dev": "nest start --watch",
@@ -17,7 +17,7 @@
     "test:cov": "jest --coverage",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "postinstall": "prisma generate"
+    "postinstall": "sh -c 'if [ \"$RAILWAY_ENVIRONMENT_NAME\" != \"production\" ]; then prisma generate; fi'"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -27,7 +27,7 @@
     "@nestjs/mapped-types": "^2.0.5",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.0.0",
-    "@nestjs/serve-static": "^5.0.3",
+    "@nestjs/serve-static": "^4.0.0",
     "@nestjs/swagger": "^7.1.17",
     "@prisma/client": "^5.10.2",
     "bcrypt": "^5.1.1",

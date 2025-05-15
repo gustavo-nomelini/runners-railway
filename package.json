@@ -6,10 +6,10 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "prisma generate && nest build",
+    "build": "nest build",
     "start": "node dist/main.js",
     "start:prod": "npm run build && node dist/main.js",
-    "prebuild": "npm install",
+    "prebuild": "npm install --omit=dev",
     "postbuild": "ls -la dist",
     "dev": "nest start --watch",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",

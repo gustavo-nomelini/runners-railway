@@ -1,0 +1,279 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+//rodar na pasta root para testar a conexão com o banco de dados
+//npx ts-node src/prisma/prisma-test.ts
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id              Int       @id @default(autoincrement()) @map("usuario_id")
+  nome            String    @db.VarChar(100) @map("nome")
+  email           String    @unique @db.VarChar(255) @map("email")
+  senhaHash       String    @map("senha_hash") @db.VarChar(255)
+  fotoPerfilUrl   String?   @map("foto_perfil_url") @db.VarChar(512)
+  biografia       String?   @db.Text @map("biografia")
+  dataRegistro    DateTime  @default(now()) @map("data_registro") @db.Timestamptz
+  ultimaAtividade DateTime? @map("ultima_atividade") @db.Timestamptz
+  ativo           Boolean   @default(true) @map("ativo")
+  nivelPermissao  Int       @default(0) @map("nivel_permissao")
+  cidade          String?   @db.VarChar(100) @map("cidade")
+  estado          String?   @db.VarChar(50) @map("estado")
+  pais            String?   @db.VarChar(50) @map("pais")
+  dataNascimento  DateTime? @map("data_nascimento") @db.Date
+  genero          String?   @db.VarChar(30)
+  preferencias    Json?     @db.JsonB
+  // Campos específicos do organizador
+  nomeEmpresa     String?   @map("nome_empresa")
+  cnpj            String?   @map("cnpj")
+  site            String?   @map("site")
+
+  // Relações
+  eventosOrganizados    Evento[]            @relation("EventoOrganizador")
+  inscricoesEventos     UsuarioEvento[]
+  fotos                 FotoEvento[]
+  comentariosEventos    ComentarioEvento[]
+  resultadosCorrida     ResultadoCorrida[]
+  medalhas              MedalhaUsuario[]
+  comentariosFeitos     ComentarioPerfil[]  @relation("AutorComentario")
+  comentariosRecebidos  ComentarioPerfil[]  @relation("PerfilComentado")
+  seguidores            Seguidor[]          @relation("UsuarioSeguidores")
+  seguindo             Seguidor[]          @relation("UsuarioSeguindo")
+  notificacoes         Notificacao[]
+  estatisticas         EstatisticaUsuario?
+
+  @@map("usuarios")
+}
+
+model Evento {
+  id              Int       @id @default(autoincrement()) @map("evento_id")
+  nome            String    @db.VarChar(255)
+  descricao       String?   @db.Text
+  localizacao     String?   @db.VarChar(255)
+  coordenadas     Json?     @db.JsonB
+  dataInicio      DateTime  @map("data_inicio") @db.Timestamptz
+  dataFim         DateTime? @map("data_fim") @db.Timestamptz
+  prazoInscricao  DateTime? @map("prazo_inscricao") @db.Timestamptz
+  organizadorId   Int       @map("organizador_id")
+  status          String    @default("Agendado") @db.VarChar(20)
+  capacidadeMaxima Int?     @map("capacidade_maxima")
+  taxaInscricao   Decimal?  @map("taxa_inscricao") @db.Decimal(10, 2)
+  capaUrl         String?   @map("capa_url") @db.VarChar(512)
+  modalidade      String?   @db.VarChar(50)
+  siteOficial     String?   @map("site_oficial") @db.VarChar(255)
+  dataCriacao     DateTime  @default(now()) @map("data_criacao") @db.Timestamptz
+  metadados       Json?     @db.JsonB
+
+  // Relações
+  organizador      Usuario          @relation("EventoOrganizador", fields: [organizadorId], references: [id])
+  inscricoes       UsuarioEvento[]
+  fotos           FotoEvento[]
+  comentarios     ComentarioEvento[]
+  resultados      ResultadoCorrida[]
+  medalhas        MedalhaUsuario[]
+  categorias      EventoCategoria[]
+
+  @@map("eventos")
+}
+
+model UsuarioEvento {
+  id                    Int      @id @default(autoincrement()) @map("usuario_evento_id")
+  usuarioId            Int      @map("usuario_id")
+  eventoId             Int      @map("evento_id")
+  dataInscricao        DateTime @default(now()) @map("data_inscricao") @db.Timestamptz
+  status               String   @default("Inscrito") @db.VarChar(20)
+  numeroAtleta         String?  @map("numero_atleta") @db.VarChar(50)
+  codigoConfirmacao    String?  @map("codigo_confirmacao") @db.VarChar(100)
+  origemInscricao      String   @default("app") @map("origem_inscricao") @db.VarChar(50)
+  comprovantePagamentoUrl String? @map("comprovante_pagamento_url") @db.VarChar(512)
+  observacoes          String?  @db.Text
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  evento  Evento  @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, eventoId])
+  @@map("usuario_eventos")
+}
+
+model FotoEvento {
+  id           Int      @id @default(autoincrement()) @map("foto_id")
+  eventoId     Int      @map("evento_id")
+  usuarioId    Int      @map("usuario_id")
+  fotoUrl      String   @map("foto_url") @db.VarChar(512)
+  thumbnailUrl String?  @map("thumbnail_url") @db.VarChar(512)
+  legenda      String?  @db.Text
+  dataUpload   DateTime @default(now()) @map("data_upload") @db.Timestamptz
+  coordenadas  Json?    @db.JsonB
+  visibilidade String   @default("publica") @db.VarChar(20)
+  metadados    Json?    @db.JsonB
+
+  evento  Evento  @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("fotos_eventos")
+}
+
+model ComentarioEvento {
+  id              Int       @id @default(autoincrement()) @map("comentario_id")
+  usuarioId       Int       @map("usuario_id")
+  eventoId        Int       @map("evento_id")
+  comentarioTexto String    @map("comentario_texto") @db.Text
+  dataComentario  DateTime  @default(now()) @map("data_comentario") @db.Timestamptz
+  comentarioPaiId Int?      @map("comentario_pai_id")
+  reacoes         Json      @default("{\"curtidas\": 0, \"coracao\": 0}") @db.JsonB
+  reportado       Boolean   @default(false)
+
+  usuario         Usuario           @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  evento          Evento            @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  comentarioPai   ComentarioEvento? @relation("RespostasComentario", fields: [comentarioPaiId], references: [id], onDelete: Cascade)
+  respostas       ComentarioEvento[] @relation("RespostasComentario")
+
+  @@map("comentarios_eventos")
+}
+
+model ResultadoCorrida {
+  id                 Int      @id @default(autoincrement()) @map("resultado_id")
+  usuarioId          Int      @map("usuario_id")
+  eventoId           Int      @map("evento_id")
+  posicaoGeral       Int?     @map("posicao_geral")
+  posicaoCategoria   Int?     @map("posicao_categoria")
+  tempoLiquido       String   @map("tempo_liquido") // INTERVAL como String
+  tempoBruto         String?  @map("tempo_bruto")   // INTERVAL como String
+  categoriaCorreida  String?  @map("categoria_corrida") @db.VarChar(100)
+  ritmoMedio         String?  @map("ritmo_medio")   // INTERVAL como String
+  velocidadeMedia    Decimal? @map("velocidade_media") @db.Decimal(5, 2)
+  distanciaPercorrida Decimal? @map("distancia_percorrida") @db.Decimal(10, 2)
+  linkCertificado    String?  @map("link_certificado") @db.VarChar(512)
+  validado           Boolean  @default(false)
+  fonteDados         String   @default("manual") @map("fonte_dados") @db.VarChar(50)
+  chipId             String?  @map("chip_id") @db.VarChar(100)
+  splits             Json?    @db.JsonB
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  evento  Evento  @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, eventoId])
+  @@map("resultados_corrida_usuario")
+}
+
+model MedalhaUsuario {
+  id              Int      @id @default(autoincrement()) @map("medalha_id")
+  usuarioId       Int      @map("usuario_id")
+  nomeMedalha     String   @map("nome_medalha") @db.VarChar(100)
+  descricaoMedalha String? @map("descricao_medalha") @db.Text
+  dataConquista   DateTime @default(now()) @map("data_conquista") @db.Timestamptz
+  eventoId        Int?     @map("evento_id")
+  tipoMedalha     String   @map("tipo_medalha") @db.VarChar(50)
+  nivelMedalha    Int      @default(1) @map("nivel_medalha")
+  medalhaUrl      String?  @map("medalha_url") @db.VarChar(512)
+  pontosXp        Int      @default(0) @map("pontos_xp")
+  exibirPerfil    Boolean  @default(true) @map("exibir_perfil")
+  requisitosJson  Json?    @map("requisitos_json") @db.JsonB
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  evento  Evento? @relation(fields: [eventoId], references: [id], onDelete: SetNull)
+
+  @@map("medalhas_usuario")
+}
+
+model ComentarioPerfil {
+  id              Int       @id @default(autoincrement()) @map("comentario_id")
+  autorId         Int       @map("autor_id")
+  perfilId        Int       @map("perfil_id")
+  comentarioTexto String    @map("comentario_texto") @db.Text
+  dataComentario  DateTime  @default(now()) @map("data_comentario") @db.Timestamptz
+  comentarioPaiId Int?      @map("comentario_pai_id")
+  reacoes         Json      @default("{\"curtidas\": 0, \"coracao\": 0}") @db.JsonB
+  visibilidade    String    @default("publica") @map("visibilidade") @db.VarChar(20)
+
+  autor           Usuario           @relation("AutorComentario", fields: [autorId], references: [id], onDelete: Cascade)
+  perfil          Usuario           @relation("PerfilComentado", fields: [perfilId], references: [id], onDelete: Cascade)
+  comentarioPai   ComentarioPerfil? @relation("RespostasComentarioPerfil", fields: [comentarioPaiId], references: [id], onDelete: Cascade)
+  respostas       ComentarioPerfil[] @relation("RespostasComentarioPerfil")
+
+  @@map("comentarios_perfil")
+}
+
+model Seguidor {
+  usuarioId           Int      @map("usuario_id")
+  seguidorId          Int      @map("seguidor_id")
+  dataSeguindo        DateTime @default(now()) @map("data_seguindo") @db.Timestamptz
+  notificacoesAtivas  Boolean  @default(true) @map("notificacoes_ativas")
+
+  usuario   Usuario @relation("UsuarioSeguidores", fields: [usuarioId], references: [id], onDelete: Cascade)
+  seguidor  Usuario @relation("UsuarioSeguindo", fields: [seguidorId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, seguidorId])
+  @@map("seguidores")
+}
+
+model Notificacao {
+  id           Int      @id @default(autoincrement()) @map("notificacao_id")
+  usuarioId    Int      @map("usuario_id")
+  tipo         String   @db.VarChar(50)
+  titulo       String   @db.VarChar(100)
+  mensagem     String   @db.Text
+  dataCriacao  DateTime @default(now()) @map("data_criacao") @db.Timestamptz
+  lida         Boolean  @default(false)
+  acaoUrl      String?  @map("acao_url") @db.VarChar(255)
+  entidadeId   Int?     @map("entidade_id")
+  entidadeTipo String?  @map("entidade_tipo") @db.VarChar(50)
+  metadados    Json?    @db.JsonB
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("notificacoes")
+}
+
+model EstatisticaUsuario {
+  id               Int       @id @default(autoincrement()) @map("estatistica_id")
+  usuarioId        Int       @unique @map("usuario_id")
+  totalCorridas    Int       @default(0) @map("total_corridas")
+  totalDistancia   Decimal   @default(0.0) @map("total_distancia") @db.Decimal(10, 2)
+  melhorTempo5k    String?   @map("melhor_tempo_5k")    // INTERVAL como String
+  melhorTempo10k   String?   @map("melhor_tempo_10k")   // INTERVAL como String
+  melhorTempo21k   String?   @map("melhor_tempo_21k")   // INTERVAL como String
+  melhorTempo42k   String?   @map("melhor_tempo_42k")   // INTERVAL como String
+  nivelCorredor    Int       @default(1) @map("nivel_corredor")
+  pontosXp         Int       @default(0) @map("pontos_xp")
+  ultimoCalculo    DateTime  @default(now()) @map("ultimo_calculo") @db.Timestamptz
+  streaks          Json?     @db.JsonB
+  recordes         Json?     @db.JsonB
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("estatisticas_usuario")
+}
+
+model Categoria {
+  id          Int      @id @default(autoincrement()) @map("categoria_id")
+  nome        String   @db.VarChar(100)
+  descricao   String?  @db.Text
+  distancia   Decimal? @db.Decimal(10, 2)
+  iconeUrl    String?  @map("icone_url") @db.VarChar(512)
+
+  eventos     EventoCategoria[]
+
+  @@map("categorias")
+}
+
+model EventoCategoria {
+  eventoId    Int @map("evento_id")
+  categoriaId Int @map("categoria_id")
+
+  evento    Evento    @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  categoria Categoria @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+
+  @@id([eventoId, categoriaId])
+  @@map("evento_categorias")
+}

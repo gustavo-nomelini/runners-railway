@@ -46,7 +46,7 @@ railway link || error_exit "Falha ao linkar projeto"
 
 # 8. Define variáveis de ambiente
 echo "🔐 Configurando variáveis de ambiente..."
-railway variables set NODE_ENV="production"
+railway add NODE_ENV=production || error_exit "Falha ao configurar NODE_ENV"
 
 # 9. Deploy
 echo "🚀 Iniciando deploy..."

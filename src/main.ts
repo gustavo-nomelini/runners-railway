@@ -36,11 +36,6 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  // Health Check Endpoint
-  app.get('/api/v1/health', (req, res) => {
-    res.status(200).json({ status: 'ok' });
-  });
-
   // Swagger Configuration
   const config = new DocumentBuilder()
     .setTitle('API Runners')
@@ -70,12 +65,12 @@ async function bootstrap() {
 
   // Porta baseada no ambiente (Railway define process.env.PORT)
   const port = process.env.PORT || 3001;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 
   // Log do ambiente e da URL da documentação
   const isProduction = process.env.NODE_ENV === 'production';
   const baseUrl = isProduction
-    ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN || 'localhost'}:${port}`
+    ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN || 'localhost'}`
     : `http://localhost:${port}`;
 
   logger.log(`Aplicação iniciada - Rodando na porta ${port}`);

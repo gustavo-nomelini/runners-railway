@@ -774,3 +774,441 @@ Todas as rotas podem retornar os seguintes erros:
 - **403 Forbidden**: Sem permissão para acessar o recurso
 - **404 Not Found**: Recurso não encontrado
 - **500 Internal Server Error**: Erro interno do servidor
+
+## Inscrições em Eventos (UsuarioEvento)
+
+### Registrar em Evento
+
+```http
+POST /api/v1/evento-inscricoes
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: USUARIO (0)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body**
+
+```json
+{
+  "eventoId": 1,
+  "numeroAtleta": "A1234",
+  "status": "Inscrito",
+  "origemInscricao": "app",
+  "comprovantePagamentoUrl": "https://exemplo.com/comprovante.pdf",
+  "observacoes": "Necessito de assistência especial"
+}
+```
+
+**Resposta (201 Created)**
+
+```json
+{
+  "id": 1,
+  "usuarioId": 5,
+  "eventoId": 1,
+  "dataInscricao": "2024-03-14T10:30:00.000Z",
+  "status": "Inscrito",
+  "numeroAtleta": "A1234",
+  "origemInscricao": "app",
+  "comprovantePagamentoUrl": "https://exemplo.com/comprovante.pdf",
+  "observacoes": "Necessito de assistência especial",
+  "usuario": {
+    "id": 5,
+    "nome": "Participante",
+    "email": "participante@example.com",
+    "fotoPerfilUrl": "https://exemplo.com/foto.jpg"
+  },
+  "evento": {
+    "id": 1,
+    "nome": "Maratona de São Paulo",
+    "dataInicio": "2024-05-01T07:00:00Z",
+    "localizacao": "Parque do Ibirapuera, São Paulo - SP",
+    "capaUrl": "https://exemplo.com/capa.jpg",
+    "status": "Agendado"
+  }
+}
+```
+
+### Listar Inscrições (Organizador)
+
+```http
+GET /api/v1/evento-inscricoes
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ORGANIZADOR (1)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Query Parameters**
+
+```
+page?: number (default: 1)
+limit?: number (default: 10)
+eventoId?: number
+usuarioId?: number
+status?: string (Inscrito|Confirmado|Em Análise|Cancelado|Não Compareceu)
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "usuarioId": 5,
+      "eventoId": 1,
+      "dataInscricao": "2024-03-14T10:30:00.000Z",
+      "status": "Inscrito",
+      "numeroAtleta": "A1234",
+      "usuario": {
+        "id": 5,
+        "nome": "Participante",
+        "email": "participante@example.com",
+        "fotoPerfilUrl": "https://exemplo.com/foto.jpg"
+      },
+      "evento": {
+        "id": 1,
+        "nome": "Maratona de São Paulo",
+        "dataInicio": "2024-05-01T07:00:00Z",
+        "localizacao": "Parque do Ibirapuera, São Paulo - SP",
+        "capaUrl": "https://exemplo.com/capa.jpg",
+        "status": "Agendado"
+      }
+    }
+  ],
+  "meta": {
+    "total": 50,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 5
+  }
+}
+```
+
+### Listar Minhas Inscrições
+
+```http
+GET /api/v1/evento-inscricoes/minhas-inscricoes
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: USUARIO (0)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Query Parameters**
+
+```
+page?: number (default: 1)
+limit?: number (default: 10)
+eventoId?: number
+status?: string (Inscrito|Confirmado|Em Análise|Cancelado|Não Compareceu)
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "usuarioId": 5,
+      "eventoId": 1,
+      "dataInscricao": "2024-03-14T10:30:00.000Z",
+      "status": "Inscrito",
+      "numeroAtleta": "A1234",
+      "evento": {
+        "id": 1,
+        "nome": "Maratona de São Paulo",
+        "dataInicio": "2024-05-01T07:00:00Z",
+        "localizacao": "Parque do Ibirapuera, São Paulo - SP",
+        "capaUrl": "https://exemplo.com/capa.jpg",
+        "status": "Agendado"
+      }
+    }
+  ],
+  "meta": {
+    "total": 5,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1
+  }
+}
+```
+
+### Buscar Inscrição Específica (Organizador)
+
+```http
+GET /api/v1/evento-inscricoes/evento/:eventoId/usuario/:usuarioId
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ORGANIZADOR (1)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "id": 1,
+  "usuarioId": 5,
+  "eventoId": 1,
+  "dataInscricao": "2024-03-14T10:30:00.000Z",
+  "status": "Inscrito",
+  "numeroAtleta": "A1234",
+  "usuario": {
+    "id": 5,
+    "nome": "Participante",
+    "email": "participante@example.com",
+    "fotoPerfilUrl": "https://exemplo.com/foto.jpg"
+  },
+  "evento": {
+    "id": 1,
+    "nome": "Maratona de São Paulo",
+    "dataInicio": "2024-05-01T07:00:00Z",
+    "localizacao": "Parque do Ibirapuera, São Paulo - SP",
+    "capaUrl": "https://exemplo.com/capa.jpg",
+    "status": "Agendado"
+  }
+}
+```
+
+### Buscar Minha Inscrição em Evento
+
+```http
+GET /api/v1/evento-inscricoes/minha-inscricao/:eventoId
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: USUARIO (0)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "id": 1,
+  "usuarioId": 5,
+  "eventoId": 1,
+  "dataInscricao": "2024-03-14T10:30:00.000Z",
+  "status": "Inscrito",
+  "numeroAtleta": "A1234",
+  "usuario": {
+    "id": 5,
+    "nome": "Participante",
+    "email": "participante@example.com"
+  },
+  "evento": {
+    "id": 1,
+    "nome": "Maratona de São Paulo",
+    "dataInicio": "2024-05-01T07:00:00Z"
+  }
+}
+```
+
+### Atualizar Inscrição
+
+```http
+PATCH /api/v1/evento-inscricoes/evento/:eventoId/usuario/:usuarioId
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: USUARIO (0)
+- Usuário comum só pode cancelar própria inscrição
+- Organizadores podem atualizar inscrições de seus eventos
+- Admins podem atualizar qualquer inscrição
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body**
+
+```json
+{
+  "status": "Cancelado",
+  "numeroAtleta": "A1234",
+  "comprovantePagamentoUrl": "https://exemplo.com/comprovante.pdf",
+  "observacoes": "Cancelamento por motivos pessoais"
+}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "id": 1,
+  "usuarioId": 5,
+  "eventoId": 1,
+  "dataInscricao": "2024-03-14T10:30:00.000Z",
+  "status": "Cancelado",
+  "numeroAtleta": "A1234",
+  "comprovantePagamentoUrl": "https://exemplo.com/comprovante.pdf",
+  "observacoes": "Cancelamento por motivos pessoais",
+  "usuario": {
+    "id": 5,
+    "nome": "Participante",
+    "email": "participante@example.com"
+  },
+  "evento": {
+    "id": 1,
+    "nome": "Maratona de São Paulo",
+    "dataInicio": "2024-05-01T07:00:00Z"
+  }
+}
+```
+
+### Atualizar Minha Inscrição
+
+```http
+PATCH /api/v1/evento-inscricoes/minha-inscricao/:eventoId
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: USUARIO (0)
+- Usuário comum só pode cancelar própria inscrição
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body**
+
+```json
+{
+  "status": "Cancelado",
+  "observacoes": "Cancelamento por motivos pessoais"
+}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "id": 1,
+  "usuarioId": 5,
+  "eventoId": 1,
+  "dataInscricao": "2024-03-14T10:30:00.000Z",
+  "status": "Cancelado",
+  "observacoes": "Cancelamento por motivos pessoais",
+  "usuario": {
+    "id": 5,
+    "nome": "Participante",
+    "email": "participante@example.com"
+  },
+  "evento": {
+    "id": 1,
+    "nome": "Maratona de São Paulo",
+    "dataInicio": "2024-05-01T07:00:00Z"
+  }
+}
+```
+
+### Excluir Inscrição
+
+```http
+DELETE /api/v1/evento-inscricoes/evento/:eventoId/usuario/:usuarioId
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: USUARIO (0)
+- Usuário comum só pode excluir própria inscrição
+- Organizadores podem excluir inscrições de seus eventos
+- Admins podem excluir qualquer inscrição
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "message": "Inscrição removida com sucesso"
+}
+```
+
+### Excluir Minha Inscrição
+
+```http
+DELETE /api/v1/evento-inscricoes/minha-inscricao/:eventoId
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: USUARIO (0)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "message": "Inscrição removida com sucesso"
+}
+```
+
+**Códigos de Erro**:
+
+- 400 Bad Request:
+  - Evento não encontrado
+  - Evento cancelado ou finalizado
+  - Prazo de inscrição encerrado
+  - Capacidade máxima do evento atingida
+- 401 Unauthorized: Token ausente ou inválido
+- 403 Forbidden: Tentativa de operação não autorizada
+- 404 Not Found: Inscrição não encontrada
+- 409 Conflict: Usuário já inscrito no evento

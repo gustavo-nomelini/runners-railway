@@ -65,14 +65,17 @@ export class UsuarioController {
   @Roles(NivelPermissao.ADMIN)
   @ApiBearerAuth()
   @Get()
-<<<<<<< HEAD
-  @ApiOperation({ summary: 'Listar todos os usuários' })
-  @ApiResponse({ status: 200, description: 'Lista de usuários retornada com sucesso' })
-  @ApiResponse({ status: 401, description: 'Não autorizado' })
-  @ApiResponse({ status: 403, description: 'Permissão negada - Apenas administradores' })
-=======
   @ThrottlePublic()
->>>>>>> dev
+  @ApiOperation({ summary: 'Listar todos os usuários' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de usuários retornada com sucesso',
+  })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
+  @ApiResponse({
+    status: 403,
+    description: 'Permissão negada - Apenas administradores',
+  })
   findAll() {
     return this.usuarioService.findAll();
   }

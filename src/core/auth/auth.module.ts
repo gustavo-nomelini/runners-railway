@@ -17,12 +17,22 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET') || 'your-secret-key',
-        signOptions: {
-          expiresIn: configService.get('JWT_EXPIRES_IN') || '1d',
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const isProduction = configService.get('NODE_ENV') === 'production';
+        return {
+          secret: configService.get('JWT_SECRET'),
+          signOptions: {
+            expiresIn: configService.get('JWT_EXPIRES_IN') || '1d',
+            // More secure settings for production
+            ...(isProduction && {
+              audience:
+                configService.get('JWT_AUDIENCE') ||
+                'https://runners-railway-production.up.railway.app',
+              issuer: configService.get('JWT_ISSUER') || 'runners-api',
+            }),
+          },
+        };
+      },
     }),
   ],
   controllers: [AuthController],

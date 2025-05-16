@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { CustomLoggerService } from './core/logger/custom-logger.service';
@@ -15,6 +16,19 @@ async function bootstrap() {
 
   // Apply Helmet middleware for security headers
   app.use(helmet());
+
+  // Apply rate limiting - Proteção contra sobrecarga de requisições
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    limit: isProduction ? 100 : 1000, // Limite mais rigoroso em produção
+    standardHeaders: 'draft-7', // RFC 6585
+    legacyHeaders: false,
+    message:
+      'Muitas requisições desta origem, por favor, tente novamente mais tarde',
+    skip: (request) =>
+      request.url.includes('health') || request.url.includes('api-docs'), // Não limita rotas de health check e documentação
+  });
+  app.use(limiter);
 
   app.useLogger(logger);
 

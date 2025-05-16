@@ -24,6 +24,12 @@ import * as bcrypt from 'bcrypt';
 import { NivelPermissao } from '../../core/enums/nivel-permissao.enum';
 import { JwtAuthGuard } from '../../core/guards/jwt-auth.guard';
 import { Roles, RolesGuard } from '../../core/guards/roles.guard';
+import {
+  ThrottleAuth,
+  ThrottleDefault,
+  ThrottlePublic,
+  ThrottleStrict,
+} from '../../core/throttler/throttler.decorator';
 import { CreateOrganizadorDto } from './dtos/create-organizador.dto';
 import { CreateUsuarioDto } from './dtos/create-usuario.dto';
 import { UpdateUsuarioDto } from './dtos/update-usuario.dto';
@@ -38,6 +44,7 @@ export class UsuarioController {
   ) {}
 
   @Post()
+  @ThrottleDefault()
   @ApiOperation({ summary: 'Criar um novo usuário' })
   @ApiResponse({ status: 201, description: 'Usuário criado com sucesso' })
   @ApiResponse({ status: 400, description: 'Dados inválidos' })
@@ -46,6 +53,7 @@ export class UsuarioController {
   }
 
   @Post('organizador')
+  @ThrottleDefault()
   @ApiOperation({ summary: 'Criar um novo organizador de eventos' })
   @ApiResponse({ status: 201, description: 'Organizador criado com sucesso' })
   @ApiResponse({ status: 400, description: 'Dados inválidos' })
@@ -57,15 +65,20 @@ export class UsuarioController {
   @Roles(NivelPermissao.ADMIN)
   @ApiBearerAuth()
   @Get()
+<<<<<<< HEAD
   @ApiOperation({ summary: 'Listar todos os usuários' })
   @ApiResponse({ status: 200, description: 'Lista de usuários retornada com sucesso' })
   @ApiResponse({ status: 401, description: 'Não autorizado' })
   @ApiResponse({ status: 403, description: 'Permissão negada - Apenas administradores' })
+=======
+  @ThrottlePublic()
+>>>>>>> dev
   findAll() {
     return this.usuarioService.findAll();
   }
 
   @Get(':id')
+  @ThrottlePublic()
   findOne(@Param('id') id: string) {
     return this.usuarioService.findOne(+id);
   }
@@ -73,6 +86,7 @@ export class UsuarioController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Patch(':id')
+  @ThrottleAuth()
   update(@Param('id') id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {
     return this.usuarioService.update(+id, updateUsuarioDto);
   }
@@ -80,6 +94,7 @@ export class UsuarioController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Delete(':id')
+  @ThrottleAuth()
   @ApiOperation({ summary: 'Remover usuário' })
   @ApiParam({ name: 'id', description: 'ID do usuário' })
   @ApiResponse({ status: 200, description: 'Usuário removido com sucesso' })
@@ -100,6 +115,7 @@ export class UsuarioController {
   }
 
   @Post('login')
+  @ThrottleStrict()
   @ApiOperation({ summary: 'Autenticar usuário' })
   @ApiResponse({ status: 200, description: 'Autenticação bem sucedida' })
   @ApiResponse({ status: 401, description: 'Credenciais inválidas' })
@@ -141,6 +157,7 @@ export class UsuarioController {
   @Roles(NivelPermissao.ADMIN)
   @ApiBearerAuth()
   @Patch(':id/permissao')
+  @ThrottleAuth()
   @ApiOperation({ summary: 'Atualizar nível de permissão de um usuário' })
   @ApiParam({ name: 'id', description: 'ID do usuário' })
   @ApiResponse({
@@ -160,6 +177,7 @@ export class UsuarioController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get('perfil')
+  @ThrottleAuth()
   @ApiOperation({ summary: 'Obter perfil do usuário atual' })
   @ApiResponse({ status: 200, description: 'Perfil do usuário' })
   @ApiResponse({ status: 401, description: 'Não autorizado' })

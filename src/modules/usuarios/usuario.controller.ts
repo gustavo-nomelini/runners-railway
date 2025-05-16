@@ -70,7 +70,7 @@ export class UsuarioController {
     return this.usuarioService.findOne(+id);
   }
 
-  @UseGuards(JwtAuthGuard)https://www.youtube.com/watch?v=2jEZa7oxd58&list=RD2jEZa7oxd58&start_radio=1
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {

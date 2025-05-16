@@ -3,7 +3,7 @@ import { Prisma, UsuarioEvento } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateUsuarioEventoDto } from './dtos/create-usuario-evento.dto';
 import { UpdateUsuarioEventoDto } from './dtos/update-usuario-evento.dto';
-import { UsuarioEventoWithRelations } from './types/usuario-evento.types';
+import { UsuarioEventoWithRelations } from './interfaces/usuario-evento.interface';
 
 @Injectable()
 export class UsuarioEventoRepository {

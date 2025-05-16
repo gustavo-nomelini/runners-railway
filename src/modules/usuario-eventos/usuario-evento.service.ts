@@ -13,7 +13,7 @@ import {
   UsuarioEventoConflictException,
   UsuarioEventoNotFoundException,
 } from './exceptions/usuario-evento.exceptions';
-import { UsuarioEventoWithRelations } from './types/usuario-evento.types';
+import { UsuarioEventoWithRelations } from './interfaces/usuario-evento.interface';
 import { UsuarioEventoRepository } from './usuario-evento.repository';
 
 @Injectable()

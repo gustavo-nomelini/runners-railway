@@ -25,12 +25,20 @@ async function bootstrap() {
   );
 
   // CORS Configuration
+  const allowedOrigins =
+    process.env.NODE_ENV === 'production'
+      ? [
+          'https://cascavel-runners-teste.vercel.app',
+          'https://runners-railway-production.up.railway.app',
+        ]
+      : [
+          'http://localhost:3000',
+          'https://cascavel-runners-teste.vercel.app',
+          'https://runners-railway-production.up.railway.app',
+        ];
+
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'https://cascavel-runners-teste.vercel.app',
-      'https://runners-railway-production.up.railway.app',
-    ],
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],

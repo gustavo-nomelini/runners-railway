@@ -3,6 +3,7 @@ import { Prisma, UsuarioEvento } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateUsuarioEventoDto } from './dtos/create-usuario-evento.dto';
 import { UpdateUsuarioEventoDto } from './dtos/update-usuario-evento.dto';
+import { UsuarioEventoWithRelations } from './types/usuario-evento.types';
 
 @Injectable()
 export class UsuarioEventoRepository {
@@ -11,7 +12,7 @@ export class UsuarioEventoRepository {
   async create(
     usuarioId: number,
     data: CreateUsuarioEventoDto,
-  ): Promise<UsuarioEvento> {
+  ): Promise<UsuarioEventoWithRelations> {
     return this.prisma.usuarioEvento.create({
       data: {
         usuarioId,
@@ -22,6 +23,27 @@ export class UsuarioEventoRepository {
         comprovantePagamentoUrl: data.comprovantePagamentoUrl,
         observacoes: data.observacoes,
       },
+      include: {
+        usuario: {
+          select: {
+            id: true,
+            nome: true,
+            email: true,
+            fotoPerfilUrl: true,
+          },
+        },
+        evento: {
+          select: {
+            id: true,
+            nome: true,
+            dataInicio: true,
+            localizacao: true,
+            capaUrl: true,
+            status: true,
+            organizadorId: true,
+          },
+        },
+      },
     });
   }
 
@@ -30,7 +52,7 @@ export class UsuarioEventoRepository {
     take?: number;
     where?: Prisma.UsuarioEventoWhereInput;
     orderBy?: Prisma.UsuarioEventoOrderByWithRelationInput;
-  }): Promise<UsuarioEvento[]> {
+  }): Promise<UsuarioEventoWithRelations[]> {
     const { skip, take, where, orderBy } = params;
     return this.prisma.usuarioEvento.findMany({
       skip,
@@ -54,6 +76,7 @@ export class UsuarioEventoRepository {
             localizacao: true,
             capaUrl: true,
             status: true,
+            organizadorId: true,
           },
         },
       },
@@ -63,7 +86,7 @@ export class UsuarioEventoRepository {
   async findByIds(
     usuarioId: number,
     eventoId: number,
-  ): Promise<UsuarioEvento | null> {
+  ): Promise<UsuarioEventoWithRelations | null> {
     return this.prisma.usuarioEvento.findUnique({
       where: {
         usuarioId_eventoId: {
@@ -99,7 +122,7 @@ export class UsuarioEventoRepository {
     usuarioId: number,
     eventoId: number,
     data: UpdateUsuarioEventoDto,
-  ): Promise<UsuarioEvento> {
+  ): Promise<UsuarioEventoWithRelations> {
     return this.prisma.usuarioEvento.update({
       where: {
         usuarioId_eventoId: {
@@ -114,6 +137,7 @@ export class UsuarioEventoRepository {
             id: true,
             nome: true,
             email: true,
+            fotoPerfilUrl: true,
           },
         },
         evento: {
@@ -121,6 +145,10 @@ export class UsuarioEventoRepository {
             id: true,
             nome: true,
             dataInicio: true,
+            localizacao: true,
+            capaUrl: true,
+            status: true,
+            organizadorId: true,
           },
         },
       },

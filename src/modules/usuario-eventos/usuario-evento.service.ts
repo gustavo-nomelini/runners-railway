@@ -13,6 +13,7 @@ import {
   UsuarioEventoConflictException,
   UsuarioEventoNotFoundException,
 } from './exceptions/usuario-evento.exceptions';
+import { UsuarioEventoWithRelations } from './types/usuario-evento.types';
 import { UsuarioEventoRepository } from './usuario-evento.repository';
 
 @Injectable()
@@ -25,7 +26,7 @@ export class UsuarioEventoService {
   async registrarUsuarioEmEvento(
     usuarioId: number,
     createDto: CreateUsuarioEventoDto,
-  ) {
+  ): Promise<UsuarioEventoWithRelations> {
     const { eventoId } = createDto;
 
     // Verificar se o usuário já está registrado neste evento
@@ -87,7 +88,7 @@ export class UsuarioEventoService {
     updateDto: UpdateUsuarioEventoDto,
     userNivelPermissao: NivelPermissao,
     userRequestId: number,
-  ) {
+  ): Promise<UsuarioEventoWithRelations> {
     const inscricao = await this.usuarioEventoRepository.findByIds(
       usuarioId,
       eventoId,
@@ -132,7 +133,7 @@ export class UsuarioEventoService {
     eventoId: number,
     userNivelPermissao: NivelPermissao,
     userRequestId: number,
-  ) {
+  ): Promise<void> {
     const inscricao = await this.usuarioEventoRepository.findByIds(
       usuarioId,
       eventoId,
@@ -156,10 +157,13 @@ export class UsuarioEventoService {
       throw new OperacaoNaoAutorizadaException();
     }
 
-    return this.usuarioEventoRepository.delete(usuarioId, eventoId);
+    await this.usuarioEventoRepository.delete(usuarioId, eventoId);
   }
 
-  async buscarInscricao(usuarioId: number, eventoId: number) {
+  async buscarInscricao(
+    usuarioId: number,
+    eventoId: number,
+  ): Promise<UsuarioEventoWithRelations> {
     const inscricao = await this.usuarioEventoRepository.findByIds(
       usuarioId,
       eventoId,
@@ -174,7 +178,7 @@ export class UsuarioEventoService {
 
   async listarInscricoes(
     query: FindUsuarioEventosDto,
-  ): Promise<UsuarioEventoPaginationResponse<any>> {
+  ): Promise<UsuarioEventoPaginationResponse<UsuarioEventoWithRelations>> {
     const { page = 1, limit = 10, ...filters } = query;
     const skip = (page - 1) * limit;
 

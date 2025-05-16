@@ -23,10 +23,18 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     private readonly prisma: PrismaService,
     private readonly logger: CustomLoggerService,
   ) {
+    const isProduction = configService.get('NODE_ENV') === 'production';
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get('JWT_SECRET') || 'your-secret-key',
+      secretOrKey: configService.get('JWT_SECRET'),
+      ...(isProduction && {
+        audience:
+          configService.get('JWT_AUDIENCE') ||
+          'https://runners-railway-production.up.railway.app',
+        issuer: configService.get('JWT_ISSUER') || 'runners-api',
+      }),
     });
 
     this.logger.setContext('JwtStrategy');
@@ -51,6 +59,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       );
       throw new UnauthorizedException('Usuário não encontrado ou inativo');
     }
+
+    // Atualizar a última atividade do usuário
+    await this.prisma.usuario.update({
+      where: { id: user.id },
+      data: { ultimaAtividade: new Date() },
+    });
 
     this.logger.debug(`Token JWT validado com sucesso para: ${user.email}`);
 

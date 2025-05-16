@@ -6,11 +6,10 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
+    "prebuild": "rimraf dist",
+    "build": "nest build && prisma generate && cp -r prisma dist/ && cp package.json dist/ && cp package-lock.json dist/",
     "start": "node dist/main.js",
     "start:prod": "node dist/main.js",
-    "prebuild": "npm install --omit=dev",
-    "postbuild": "ls -la dist",
     "dev": "nest start --watch",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -19,7 +18,7 @@
     "test:cov": "jest --coverage",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "postinstall": "sh -c 'if [ \"$RAILWAY_ENVIRONMENT_NAME\" != \"production\" ]; then prisma generate; fi'"
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

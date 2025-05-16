@@ -563,26 +563,26 @@ src/
 - [x] Configure Prisma (`@nestjs/prisma`) and generate `schema.prisma`
 - [x] Create entities in Prisma based on SQL tables
 - [x] Connect to PostgreSQL database (locally for Dev)
-- [ ] Connect to PostgreSQL database (AWS RDS for Prod)
+- [x] Connect to PostgreSQL database (AWS RDS for Prod)
 
 ### 2. User Module (`usuarios`)
 
-- [ ] User CRUD operations
-- [ ] Password hashing with `bcrypt`
-- [ ] JWT authentication (auth module)
-- [ ] Global filters and validated DTOs with `class-validator`
+- [x] User CRUD operations
+- [x] Password hashing with `bcrypt`
+- [x] JWT authentication (auth module)
+- [x] Global filters and validated DTOs with `class-validator`
 
 ### 3. Event Module (`eventos`)
 
-- [ ] Create events, query by filters (status, location, etc.)
-- [ ] Use `POINT` for coordinates (see Prisma extensions with raw SQL)
-- [ ] Associate event with organizer
+- [x] Create events, query by filters (status, location, etc.)
+- [x] Use `POINT` for coordinates (see Prisma extensions with raw SQL)
+- [x] Associate event with organizer
 
 ### 4. Event Registration Module (`usuario-eventos`)
 
-- [ ] Allow users to register for events
-- [ ] Check duplication rules (unique key)
-- [ ] Control status (`Registered`, `Canceled`, etc.)
+- [x] Allow users to register for events
+- [x] Check duplication rules (unique key)
+- [x] Control status (`Registered`, `Canceled`, etc.)
 
 ### 5. Event Photos and Comments Module
 

@@ -53,7 +53,14 @@ export class UsuarioController {
     return this.usuarioService.createOrganizador(createOrganizadorDto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(NivelPermissao.ADMIN)
+  @ApiBearerAuth()
   @Get()
+  @ApiOperation({ summary: 'Listar todos os usuários' })
+  @ApiResponse({ status: 200, description: 'Lista de usuários retornada com sucesso' })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
+  @ApiResponse({ status: 403, description: 'Permissão negada - Apenas administradores' })
   findAll() {
     return this.usuarioService.findAll();
   }
@@ -63,7 +70,7 @@ export class UsuarioController {
     return this.usuarioService.findOne(+id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)https://www.youtube.com/watch?v=2jEZa7oxd58&list=RD2jEZa7oxd58&start_radio=1
   @ApiBearerAuth()
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {

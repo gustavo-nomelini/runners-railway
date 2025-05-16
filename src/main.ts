@@ -29,7 +29,7 @@ async function bootstrap() {
     origin: [
       'http://localhost:3000',
       'https://cascavel-runners-teste.vercel.app',
-      'https://*.railway.app',
+      'https://runners-railway-production.up.railway.app',
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,

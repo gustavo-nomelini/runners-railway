@@ -21,6 +21,10 @@ import {
 import { NivelPermissao } from '../../core/enums/nivel-permissao.enum';
 import { JwtAuthGuard } from '../../core/guards/jwt-auth.guard';
 import { Roles, RolesGuard } from '../../core/guards/roles.guard';
+import {
+  ThrottlePublic,
+  ThrottleWrite,
+} from '../../core/throttler/throttler.decorator';
 import { CreateEventoDto } from './dtos/create-evento.dto';
 import { FindEventosDto } from './dtos/find-eventos.dto';
 import { UpdateEventoDto } from './dtos/update-evento.dto';
@@ -32,6 +36,7 @@ export class EventoController {
   constructor(private readonly eventoService: EventoService) {}
 
   @Post()
+  @ThrottleWrite()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(NivelPermissao.ORGANIZADOR) // Nível mínimo para criar eventos (organizador)
   @ApiBearerAuth()
@@ -44,6 +49,7 @@ export class EventoController {
   }
 
   @Get()
+  @ThrottlePublic()
   @ApiOperation({ summary: 'Listar todos os eventos com filtros' })
   @ApiResponse({
     status: 200,
@@ -54,6 +60,7 @@ export class EventoController {
   }
 
   @Get(':id')
+  @ThrottlePublic()
   @ApiOperation({ summary: 'Buscar um evento pelo ID' })
   @ApiParam({ name: 'id', description: 'ID do evento' })
   @ApiResponse({ status: 200, description: 'Evento encontrado' })
@@ -63,6 +70,7 @@ export class EventoController {
   }
 
   @Patch(':id')
+  @ThrottleWrite()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Atualizar um evento existente' })
@@ -85,6 +93,7 @@ export class EventoController {
   }
 
   @Delete(':id')
+  @ThrottleWrite()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Remover um evento' })

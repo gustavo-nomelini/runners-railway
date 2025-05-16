@@ -2,6 +2,7 @@ import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { HttpExceptionResponse } from '../filters/http-exception.filter';
 import { CustomLoggerService } from '../logger/custom-logger.service';
+import { ThrottleStrict } from '../throttler/throttler.decorator';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 
@@ -36,6 +37,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @ThrottleStrict()
   @ApiOperation({ summary: 'Autenticar usuário' })
   @ApiResponse({
     status: 200,

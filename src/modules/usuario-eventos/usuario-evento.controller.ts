@@ -22,6 +22,10 @@ import {
 import { NivelPermissao } from '../../core/enums/nivel-permissao.enum';
 import { JwtAuthGuard } from '../../core/guards/jwt-auth.guard';
 import { Roles, RolesGuard } from '../../core/guards/roles.guard';
+import {
+  ThrottleRead,
+  ThrottleWrite,
+} from '../../core/throttler/throttler.decorator';
 import { CreateUsuarioEventoDto } from './dtos/create-usuario-evento.dto';
 import { FindUsuarioEventosDto } from './dtos/find-usuario-eventos.dto';
 import { UpdateUsuarioEventoDto } from './dtos/update-usuario-evento.dto';
@@ -33,6 +37,7 @@ export class UsuarioEventoController {
   constructor(private readonly usuarioEventoService: UsuarioEventoService) {}
 
   @Post()
+  @ThrottleWrite()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Registrar usuário em um evento' })
@@ -59,6 +64,7 @@ export class UsuarioEventoController {
   }
 
   @Get()
+  @ThrottleRead()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(NivelPermissao.ORGANIZADOR)
   @ApiBearerAuth()
@@ -79,6 +85,7 @@ export class UsuarioEventoController {
   }
 
   @Get('minhas-inscricoes')
+  @ThrottleRead()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Listar inscrições do usuário autenticado' })
@@ -99,6 +106,7 @@ export class UsuarioEventoController {
   }
 
   @Get('evento/:eventoId/usuario/:usuarioId')
+  @ThrottleRead()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(NivelPermissao.ORGANIZADOR)
   @ApiBearerAuth()
@@ -120,6 +128,7 @@ export class UsuarioEventoController {
   }
 
   @Get('minha-inscricao/:eventoId')
+  @ThrottleRead()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
@@ -139,6 +148,7 @@ export class UsuarioEventoController {
   }
 
   @Patch('evento/:eventoId/usuario/:usuarioId')
+  @ThrottleWrite()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(NivelPermissao.USUARIO)
   @ApiBearerAuth()
@@ -170,6 +180,7 @@ export class UsuarioEventoController {
   }
 
   @Patch('minha-inscricao/:eventoId')
+  @ThrottleWrite()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
@@ -197,6 +208,7 @@ export class UsuarioEventoController {
   }
 
   @Delete('evento/:eventoId/usuario/:usuarioId')
+  @ThrottleWrite()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(NivelPermissao.USUARIO)
   @ApiBearerAuth()
@@ -226,6 +238,7 @@ export class UsuarioEventoController {
   }
 
   @Delete('minha-inscricao/:eventoId')
+  @ThrottleWrite()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Excluir inscrição do usuário autenticado' })

@@ -135,3 +135,48 @@ The rate limiting system automatically adjusts its limits based on the environme
 4. Apply `ThrottleRead` to GET endpoints
 5. Use `ThrottlePublic` for public-facing endpoints
 6. Only use `SkipThrottle` for internal endpoints that must bypass rate limiting
+
+## Implementation Status
+
+### Applied Throttling Decorators
+
+#### AppController
+
+- `GET /` - `@ThrottlePublic()`
+
+#### UsuarioController
+
+- `POST /` - `@ThrottleDefault()`
+- `POST /organizador` - `@ThrottleDefault()`
+- `GET /` - `@ThrottlePublic()`
+- `GET /:id` - `@ThrottlePublic()`
+- `PATCH /:id` - `@ThrottleAuth()`
+- `GET /perfil` - `@ThrottleAuth()`
+
+#### UsuarioEventoController
+
+- `POST /` - `@ThrottleWrite()`
+- `GET /` - `@ThrottleRead()`
+- `GET /minhas-inscricoes` - `@ThrottleRead()`
+- `GET /evento/:eventoId/usuario/:usuarioId` - `@ThrottleRead()`
+- `GET /minha-inscricao/:eventoId` - `@ThrottleRead()`
+- `PATCH /evento/:eventoId/usuario/:usuarioId` - `@ThrottleWrite()`
+- `PATCH /minha-inscricao/:eventoId` - `@ThrottleWrite()`
+- `DELETE /evento/:eventoId/usuario/:usuarioId` - `@ThrottleWrite()`
+- `DELETE /minha-inscricao/:eventoId` - `@ThrottleWrite()`
+
+#### EventoController
+
+- `POST /` - `@ThrottleWrite()`
+- `GET /` - `@ThrottlePublic()`
+- `GET /:id` - `@ThrottlePublic()`
+- `PATCH /:id` - `@ThrottleWrite()`
+- `DELETE /:id` - `@ThrottleWrite()`
+
+#### AuthController
+
+- `POST /login` - `@ThrottleStrict()`
+
+#### HealthController
+
+- `GET /health` - Excluded via `skipIf()` configuration in ThrottlerModule

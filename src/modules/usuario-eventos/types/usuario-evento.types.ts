@@ -11,7 +11,7 @@ export interface UsuarioEventoWithRelations extends UsuarioEvento {
     id: number;
     nome: string;
     dataInicio: Date;
-    localizacao: string;
+    localizacao: string | null;
     capaUrl: string | null;
     status: string;
     organizadorId: number;

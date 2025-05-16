@@ -10,6 +10,7 @@ import { LoggerModule } from './core/logger/logger.module';
 import { LoggerMiddleware } from './core/middlewares/logger.middleware';
 import { HealthModule } from './health/health.module';
 import { EventoModule } from './modules/eventos/evento.module';
+import { UsuarioEventoModule } from './modules/usuario-eventos/usuario-evento.module';
 import { UsuarioModule } from './modules/usuarios/usuario.module';
 import { PrismaModule } from './prisma/prisma.module';
 
@@ -21,6 +22,7 @@ import { PrismaModule } from './prisma/prisma.module';
     PrismaModule,
     UsuarioModule,
     EventoModule,
+    UsuarioEventoModule,
     AuthModule,
     LoggerModule,
     HealthModule,

@@ -117,44 +117,8 @@ export class UsuarioController {
     return this.usuarioService.remove(id);
   }
 
-  @Post('login')
-  @ThrottleStrict()
-  @ApiOperation({ summary: 'Autenticar usuário' })
-  @ApiResponse({ status: 200, description: 'Autenticação bem sucedida' })
-  @ApiResponse({ status: 401, description: 'Credenciais inválidas' })
-  async login(@Body() loginDto: { email: string; password: string }) {
-    // Buscar usuário pelo email com todas as propriedades (incluindo senhaHash)
-    const user = await this.usuarioService.findByEmail(loginDto.email);
-
-    if (!user) {
-      throw new UnauthorizedException('Email ou senha inválidos');
-    }
-
-    // Verificar senha
-    const isPasswordValid = await bcrypt.compare(
-      loginDto.password,
-      user.senhaHash,
-    );
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Email ou senha inválidos');
-    }
-
-    // Gerar token JWT
-    const payload = {
-      email: user.email,
-      sub: user.id,
-      role: user.nivelPermissao,
-    };
-
-    // Remover dados sensíveis para a resposta
-    const { senhaHash, ...result } = user;
-
-    return {
-      access_token: this.jwtService.sign(payload),
-      user: result,
-    };
-  }
+  // Rota de login foi movida para o AuthController
+  // Os usuários devem usar o endpoint /auth/login em vez de /usuarios/login
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(NivelPermissao.ADMIN)

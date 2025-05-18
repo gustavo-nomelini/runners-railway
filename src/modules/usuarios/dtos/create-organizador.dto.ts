@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 import { CreateUsuarioDto } from './create-usuario.dto';
 
@@ -14,11 +15,12 @@ export class CreateOrganizadorDto extends CreateUsuarioDto {
 
   @ApiProperty({
     example: '12345678901234',
-    description: 'CNPJ da empresa ou organização',
+    description: 'CNPJ da empresa ou organização (apenas números)',
   })
   @IsString()
   @IsNotEmpty()
   @MaxLength(14)
+  @Transform(({ value }) => value?.replace(/[^\d]/g, ''))
   cnpj: string;
 
   @ApiProperty({

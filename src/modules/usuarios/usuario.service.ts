@@ -48,6 +48,8 @@ export class UsuarioService {
         cidade: createUsuarioDto.cidade,
         estado: createUsuarioDto.estado,
         pais: createUsuarioDto.pais,
+        dataNascimento: createUsuarioDto.dataNascimento,
+        genero: createUsuarioDto.genero,
         nivelPermissao: NivelPermissao.USUARIO,
       });
     } catch (error) {

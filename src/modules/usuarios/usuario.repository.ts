@@ -27,8 +27,12 @@ export class UsuarioRepository {
   }
 
   async findById(id: number) {
-    return this.prisma.usuario.findUnique({
-      where: { id },
+    return this.prisma.usuario.findFirst({
+      where: {
+        id: {
+          equals: id,
+        },
+      },
       select: userSelect,
     });
   }
@@ -48,7 +52,9 @@ export class UsuarioRepository {
 
   async update(id: number, data: Prisma.UsuarioUpdateInput) {
     return this.prisma.usuario.update({
-      where: { id },
+      where: {
+        id: Number(id),
+      },
       data,
       select: userSelect,
     });
@@ -56,7 +62,9 @@ export class UsuarioRepository {
 
   async delete(id: number) {
     return this.prisma.usuario.delete({
-      where: { id },
+      where: {
+        id: Number(id),
+      },
     });
   }
 }

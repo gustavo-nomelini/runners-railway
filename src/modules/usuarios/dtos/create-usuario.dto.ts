@@ -1,6 +1,6 @@
-import { NotFoundException } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsDateString,
   IsEmail,
   IsNotEmpty,
   IsOptional,
@@ -89,5 +89,23 @@ export class CreateUsuarioDto {
   @IsString()
   @MaxLength(50)
   pais?: string;
-}
 
+  @ApiProperty({
+    required: false,
+    example: '1990-01-01',
+    description: 'Data de nascimento do usuário',
+  })
+  @IsOptional()
+  @IsDateString()
+  dataNascimento?: string;
+
+  @ApiProperty({
+    required: false,
+    example: 'Masculino',
+    description: 'Gênero do usuário',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  genero?: string;
+}

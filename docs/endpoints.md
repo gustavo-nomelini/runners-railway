@@ -1212,3 +1212,458 @@ Authorization: Bearer {token}
 - 403 Forbidden: Tentativa de operação não autorizada
 - 404 Not Found: Inscrição não encontrada
 - 409 Conflict: Usuário já inscrito no evento
+
+## Resultados de Corridas
+
+### Registrar Resultado de Corrida
+
+```http
+POST /api/v1/resultados-corrida
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: USUARIO (0)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body**
+
+```json
+{
+  "eventoId": 1,
+  "tempoLiquido": "01:45:30",
+  "tempoBruto": "01:46:15",
+  "posicaoGeral": 120,
+  "posicaoCategoria": 15,
+  "categoriaCorreida": "M30-34",
+  "ritmoMedio": "05:05",
+  "velocidadeMedia": 11.8,
+  "distanciaPercorrida": 21.1,
+  "linkCertificado": "https://exemplo.com/certificado/123",
+  "chipId": "ABC12345",
+  "splits": {
+    "5k": "00:25:30",
+    "10k": "00:51:15",
+    "15k": "01:18:45",
+    "20k": "01:42:00"
+  }
+}
+```
+
+**Resposta (201 Created)**
+
+```json
+{
+  "id": 1,
+  "usuarioId": 5,
+  "eventoId": 1,
+  "tempoLiquido": "01:45:30",
+  "tempoBruto": "01:46:15",
+  "posicaoGeral": 120,
+  "posicaoCategoria": 15,
+  "categoriaCorreida": "M30-34",
+  "ritmoMedio": "05:05",
+  "velocidadeMedia": 11.8,
+  "distanciaPercorrida": 21.1,
+  "linkCertificado": "https://exemplo.com/certificado/123",
+  "validado": false,
+  "fonteDados": "manual",
+  "chipId": "ABC12345",
+  "splits": {
+    "5k": "00:25:30",
+    "10k": "00:51:15",
+    "15k": "01:18:45",
+    "20k": "01:42:00"
+  }
+}
+```
+
+**Códigos de Erro**:
+
+- 400 Bad Request: Evento não encontrado
+- 409 Conflict: Usuário já possui um resultado para este evento
+
+### Listar Resultados de Corridas
+
+```http
+GET /api/v1/resultados-corrida
+```
+
+**Permissões**: Público (não requer autenticação)
+
+**Query Parameters**
+
+```
+eventoId?: number
+usuarioId?: number
+validado?: boolean
+```
+
+**Resposta (200 OK)**
+
+```json
+[
+  {
+    "id": 1,
+    "usuarioId": 5,
+    "eventoId": 1,
+    "tempoLiquido": "01:45:30",
+    "tempoBruto": "01:46:15",
+    "posicaoGeral": 120,
+    "posicaoCategoria": 15,
+    "usuario": {
+      "id": 5,
+      "nome": "João Silva",
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "fotoPerfilUrl": "https://exemplo.com/foto.jpg"
+    },
+    "evento": {
+      "id": 1,
+      "nome": "Meia Maratona de São Paulo",
+      "dataInicio": "2024-06-15T06:00:00.000Z",
+      "localizacao": "São Paulo, SP"
+    }
+  }
+  // mais resultados
+]
+```
+
+### Listar Resultados de um Evento
+
+```http
+GET /api/v1/resultados-corrida/evento/:eventoId
+```
+
+**Permissões**: Público (não requer autenticação)
+
+**Resposta (200 OK)**
+
+```json
+[
+  {
+    "id": 1,
+    "usuarioId": 5,
+    "eventoId": 1,
+    "tempoLiquido": "01:45:30",
+    "posicaoGeral": 120,
+    "posicaoCategoria": 15,
+    "categoriaCorreida": "M30-34",
+    "usuario": {
+      "id": 5,
+      "nome": "João Silva",
+      "cidade": "São Paulo",
+      "estado": "SP"
+    }
+  }
+  // mais resultados
+]
+```
+
+**Códigos de Erro**:
+
+- 404 Not Found: Evento não encontrado
+
+### Listar Meus Resultados
+
+```http
+GET /api/v1/resultados-corrida/usuario/meus-resultados
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: USUARIO (0)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Resposta (200 OK)**
+
+```json
+[
+  {
+    "id": 1,
+    "eventoId": 1,
+    "tempoLiquido": "01:45:30",
+    "posicaoGeral": 120,
+    "evento": {
+      "id": 1,
+      "nome": "Meia Maratona de São Paulo",
+      "dataInicio": "2024-06-15T06:00:00.000Z",
+      "localizacao": "São Paulo, SP",
+      "modalidade": "Corrida de Rua",
+      "capaUrl": "https://exemplo.com/capa.jpg"
+    }
+  }
+  // mais resultados
+]
+```
+
+### Listar Resultados de um Usuário
+
+```http
+GET /api/v1/resultados-corrida/usuario/:usuarioId
+```
+
+**Permissões**: Público (não requer autenticação)
+
+**Resposta (200 OK)**
+
+```json
+[
+  {
+    "id": 1,
+    "eventoId": 1,
+    "tempoLiquido": "01:45:30",
+    "posicaoGeral": 120,
+    "evento": {
+      "id": 1,
+      "nome": "Meia Maratona de São Paulo",
+      "dataInicio": "2024-06-15T06:00:00.000Z",
+      "localizacao": "São Paulo, SP",
+      "modalidade": "Corrida de Rua",
+      "capaUrl": "https://exemplo.com/capa.jpg"
+    }
+  }
+  // mais resultados
+]
+```
+
+### Obter Resultado Específico
+
+```http
+GET /api/v1/resultados-corrida/:id
+```
+
+**Permissões**: Público (não requer autenticação)
+
+**Resposta (200 OK)**
+
+```json
+{
+  "id": 1,
+  "usuarioId": 5,
+  "eventoId": 1,
+  "tempoLiquido": "01:45:30",
+  "tempoBruto": "01:46:15",
+  "posicaoGeral": 120,
+  "posicaoCategoria": 15,
+  "categoriaCorreida": "M30-34",
+  "ritmoMedio": "05:05",
+  "velocidadeMedia": 11.8,
+  "distanciaPercorrida": 21.1,
+  "linkCertificado": "https://exemplo.com/certificado/123",
+  "validado": false,
+  "fonteDados": "manual",
+  "chipId": "ABC12345",
+  "splits": {
+    "5k": "00:25:30",
+    "10k": "00:51:15",
+    "15k": "01:18:45",
+    "20k": "01:42:00"
+  },
+  "usuario": {
+    "id": 5,
+    "nome": "João Silva",
+    "cidade": "São Paulo",
+    "estado": "SP",
+    "fotoPerfilUrl": "https://exemplo.com/foto.jpg"
+  },
+  "evento": {
+    "id": 1,
+    "nome": "Meia Maratona de São Paulo",
+    "dataInicio": "2024-06-15T06:00:00.000Z",
+    "localizacao": "São Paulo, SP",
+    "modalidade": "Corrida de Rua"
+  }
+}
+```
+
+**Códigos de Erro**:
+
+- 404 Not Found: Resultado não encontrado
+
+### Atualizar Resultado
+
+```http
+PATCH /api/v1/resultados-corrida/:id
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: USUARIO (0)
+- Usuário só pode atualizar seu próprio resultado
+- Organizador do evento pode atualizar qualquer resultado do evento
+- Admin pode atualizar qualquer resultado
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body** (campos opcionais)
+
+```json
+{
+  "tempoLiquido": "01:44:30",
+  "posicaoGeral": 118,
+  "posicaoCategoria": 14,
+  "ritmoMedio": "05:00",
+  "velocidadeMedia": 12.0,
+  "linkCertificado": "https://exemplo.com/certificado/novo",
+  "validado": true
+}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "id": 1,
+  "usuarioId": 5,
+  "eventoId": 1,
+  "tempoLiquido": "01:44:30",
+  "tempoBruto": "01:46:15",
+  "posicaoGeral": 118,
+  "posicaoCategoria": 14,
+  "categoriaCorreida": "M30-34",
+  "ritmoMedio": "05:00",
+  "velocidadeMedia": 12.0,
+  "distanciaPercorrida": 21.1,
+  "linkCertificado": "https://exemplo.com/certificado/novo",
+  "validado": true,
+  "fonteDados": "manual",
+  "chipId": "ABC12345",
+  "splits": {
+    "5k": "00:25:30",
+    "10k": "00:51:15",
+    "15k": "01:18:45",
+    "20k": "01:42:00"
+  }
+}
+```
+
+**Códigos de Erro**:
+
+- 403 Forbidden: Sem permissão para atualizar este resultado
+- 404 Not Found: Resultado não encontrado
+
+### Validar Múltiplos Resultados
+
+```http
+POST /api/v1/resultados-corrida/validar-resultados
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ORGANIZADOR (1)
+- Deve ser o organizador do evento
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body**
+
+```json
+{
+  "eventoId": 1,
+  "resultadosIds": [1, 2, 3, 4, 5]
+}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "message": "5 resultados validados com sucesso"
+}
+```
+
+**Códigos de Erro**:
+
+- 403 Forbidden: Sem permissão para validar resultados deste evento
+
+### Remover Resultado
+
+```http
+DELETE /api/v1/resultados-corrida/:id
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: USUARIO (0)
+- Usuário só pode remover seu próprio resultado
+- Organizador do evento pode remover qualquer resultado do evento
+- Admin pode remover qualquer resultado
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "message": "Resultado removido com sucesso"
+}
+```
+
+**Códigos de Erro**:
+
+- 403 Forbidden: Sem permissão para remover este resultado
+- 404 Not Found: Resultado não encontrado
+
+### Remover Todos os Resultados de um Evento (Admin)
+
+```http
+DELETE /api/v1/resultados-corrida/evento/:eventoId/bulk
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ADMIN (2)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "message": "15 resultados removidos com sucesso"
+}
+```
+
+## Códigos de Erro Comuns
+
+Todas as rotas podem retornar os seguintes erros:
+
+- **400 Bad Request**: Dados inválidos ou mal formatados
+- **401 Unauthorized**: Token ausente ou inválido
+- **403 Forbidden**: Sem permissão para acessar o recurso
+- **404 Not Found**: Recurso não encontrado
+- **409 Conflict**: Conflito com recurso existente
+- **500 Internal Server Error**: Erro interno do servidor

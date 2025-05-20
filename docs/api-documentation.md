@@ -228,6 +228,242 @@ model Usuario {
   }
   ```
 
+## Resultados de Corridas
+
+O módulo de Resultados de Corridas permite aos usuários registrar e gerenciar seus resultados em eventos esportivos, com validação pelos organizadores.
+
+### Entidade ResultadoCorrida
+
+```typescript
+// Modelo Prisma
+model ResultadoCorrida {
+  id                 Int      @id @default(autoincrement()) @map("resultado_id")
+  usuarioId          Int      @map("usuario_id")
+  eventoId           Int      @map("evento_id")
+  posicaoGeral       Int?     @map("posicao_geral")
+  posicaoCategoria   Int?     @map("posicao_categoria")
+  tempoLiquido       String   @map("tempo_liquido") // Formato HH:MM:SS
+  tempoBruto         String?  @map("tempo_bruto")   // Formato HH:MM:SS
+  categoriaCorreida  String?  @map("categoria_corrida") @db.VarChar(100)
+  ritmoMedio         String?  @map("ritmo_medio")   // Formato MM:SS/km
+  velocidadeMedia    Decimal? @map("velocidade_media") @db.Decimal(5, 2)
+  distanciaPercorrida Decimal? @map("distancia_percorrida") @db.Decimal(10, 2)
+  linkCertificado    String?  @map("link_certificado") @db.VarChar(512)
+  validado           Boolean  @default(false)
+  fonteDados         String   @default("manual") @map("fonte_dados") @db.VarChar(50)
+  chipId             String?  @map("chip_id") @db.VarChar(100)
+  splits             Json?    @db.JsonB
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  evento  Evento  @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+}
+```
+
+### Endpoints de Resultados de Corridas
+
+#### Registrar um resultado de corrida
+
+- **Endpoint**: `POST /api/v1/resultados-corrida`
+- **Descrição**: Registra um novo resultado de corrida para o usuário autenticado
+- **Autenticação**: JWT Bearer Token necessário
+- **Body**:
+  ```json
+  {
+    "eventoId": 1,
+    "tempoLiquido": "01:45:30",
+    "tempoBruto": "01:46:15",
+    "posicaoGeral": 120,
+    "posicaoCategoria": 15,
+    "categoriaCorreida": "M30-34",
+    "ritmoMedio": "05:05",
+    "velocidadeMedia": 11.8,
+    "distanciaPercorrida": 21.1,
+    "linkCertificado": "https://exemplo.com/certificado/123",
+    "chipId": "ABC12345",
+    "splits": {
+      "5k": "00:25:30",
+      "10k": "00:51:15",
+      "15k": "01:18:45",
+      "20k": "01:42:00"
+    }
+  }
+  ```
+- **Resposta (201 Created)**:
+  ```json
+  {
+    "id": 1,
+    "usuarioId": 5,
+    "eventoId": 1,
+    "tempoLiquido": "01:45:30",
+    "tempoBruto": "01:46:15",
+    "posicaoGeral": 120,
+    "posicaoCategoria": 15,
+    "categoriaCorreida": "M30-34",
+    "ritmoMedio": "05:05",
+    "velocidadeMedia": 11.8,
+    "distanciaPercorrida": 21.1,
+    "linkCertificado": "https://exemplo.com/certificado/123",
+    "validado": false,
+    "fonteDados": "manual",
+    "chipId": "ABC12345",
+    "splits": {
+      "5k": "00:25:30",
+      "10k": "00:51:15",
+      "15k": "01:18:45",
+      "20k": "01:42:00"
+    }
+  }
+  ```
+
+#### Listar resultados de corridas
+
+- **Endpoint**: `GET /api/v1/resultados-corrida`
+- **Descrição**: Lista resultados de corridas com filtros opcionais
+- **Parâmetros Query**:
+  - `eventoId` (opcional): Filtrar por ID do evento
+  - `usuarioId` (opcional): Filtrar por ID do usuário
+  - `validado` (opcional): Filtrar por status de validação (true/false)
+- **Resposta (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "usuarioId": 5,
+      "eventoId": 1,
+      "tempoLiquido": "01:45:30",
+      "tempoBruto": "01:46:15",
+      "posicaoGeral": 120,
+      "posicaoCategoria": 15,
+      "usuario": {
+        "id": 5,
+        "nome": "João Silva",
+        "cidade": "São Paulo",
+        "estado": "SP",
+        "fotoPerfilUrl": "https://exemplo.com/foto.jpg"
+      },
+      "evento": {
+        "id": 1,
+        "nome": "Meia Maratona de São Paulo",
+        "dataInicio": "2024-06-15T06:00:00.000Z",
+        "localizacao": "São Paulo, SP"
+      }
+    }
+    // mais resultados
+  ]
+  ```
+
+#### Obter resultados de um evento específico
+
+- **Endpoint**: `GET /api/v1/resultados-corrida/evento/:eventoId`
+- **Descrição**: Retorna todos os resultados de um evento específico
+- **Resposta (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "usuarioId": 5,
+      "eventoId": 1,
+      "tempoLiquido": "01:45:30",
+      "posicaoGeral": 120,
+      "usuario": {
+        "id": 5,
+        "nome": "João Silva",
+        "cidade": "São Paulo",
+        "estado": "SP"
+      }
+    }
+    // mais resultados
+  ]
+  ```
+
+#### Obter meus resultados
+
+- **Endpoint**: `GET /api/v1/resultados-corrida/usuario/meus-resultados`
+- **Descrição**: Retorna todos os resultados do usuário autenticado
+- **Autenticação**: JWT Bearer Token necessário
+- **Resposta (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "eventoId": 1,
+      "tempoLiquido": "01:45:30",
+      "posicaoGeral": 120,
+      "evento": {
+        "id": 1,
+        "nome": "Meia Maratona de São Paulo",
+        "dataInicio": "2024-06-15T06:00:00.000Z",
+        "localizacao": "São Paulo, SP",
+        "modalidade": "Corrida de Rua",
+        "capaUrl": "https://exemplo.com/capa.jpg"
+      }
+    }
+    // mais resultados
+  ]
+  ```
+
+#### Validar resultados (para organizadores)
+
+- **Endpoint**: `POST /api/v1/resultados-corrida/validar-resultados`
+- **Descrição**: Permite que organizadores validem múltiplos resultados de um evento
+- **Autenticação**: JWT Bearer Token necessário (deve ser organizador do evento)
+- **Body**:
+  ```json
+  {
+    "eventoId": 1,
+    "resultadosIds": [1, 2, 3, 4, 5]
+  }
+  ```
+- **Resposta (200 OK)**:
+  ```json
+  {
+    "message": "5 resultados validados com sucesso"
+  }
+  ```
+
+#### Atualizar um resultado
+
+- **Endpoint**: `PATCH /api/v1/resultados-corrida/:id`
+- **Descrição**: Atualiza um resultado de corrida existente
+- **Autenticação**: JWT Bearer Token necessário (deve ser proprietário do resultado, organizador do evento ou admin)
+- **Parâmetros Path**:
+  - `id`: ID do resultado a ser atualizado
+- **Body** (campos opcionais):
+  ```json
+  {
+    "tempoLiquido": "01:44:30",
+    "posicaoGeral": 118,
+    "posicaoCategoria": 14
+  }
+  ```
+- **Resposta (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "usuarioId": 5,
+    "eventoId": 1,
+    "tempoLiquido": "01:44:30",
+    "tempoBruto": "01:46:15",
+    "posicaoGeral": 118,
+    "posicaoCategoria": 14
+    // outras propriedades
+  }
+  ```
+
+#### Remover um resultado
+
+- **Endpoint**: `DELETE /api/v1/resultados-corrida/:id`
+- **Descrição**: Remove um resultado de corrida
+- **Autenticação**: JWT Bearer Token necessário (deve ser proprietário do resultado, organizador do evento ou admin)
+- **Parâmetros Path**:
+  - `id`: ID do resultado a ser removido
+- **Resposta (200 OK)**:
+  ```json
+  {
+    "message": "Resultado removido com sucesso"
+  }
+  ```
+
 ## Autenticação e Autorização
 
 A API utiliza autenticação baseada em JWT (JSON Web Tokens):

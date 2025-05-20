@@ -11,6 +11,7 @@ import { LoggerMiddleware } from './core/middlewares/logger.middleware';
 import { ThrottlerModule } from './core/throttler/throttler.module';
 import { HealthModule } from './health/health.module';
 import { EventoModule } from './modules/eventos/evento.module';
+import { ResultadoCorridaModule } from './modules/resultados-corrida/resultado-corrida.module';
 import { UsuarioEventoModule } from './modules/usuario-eventos/usuario-evento.module';
 import { UsuarioModule } from './modules/usuarios/usuario.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -28,6 +29,7 @@ import { PrismaModule } from './prisma/prisma.module';
     AuthModule,
     LoggerModule,
     HealthModule,
+    ResultadoCorridaModule,
   ],
   controllers: [AppController],
   providers: [

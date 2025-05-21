@@ -10,6 +10,7 @@ import { HttpExceptionFilter } from './core/filters/http-exception.filter';
 import { LoggerModule } from './core/logger/logger.module';
 import { LoggerMiddleware } from './core/middlewares/logger.middleware';
 import { HealthModule } from './health/health.module';
+import { CategoriasEventosModule } from './modules/categorias-eventos/categorias-eventos.module';
 import { CategoriasModule } from './modules/categorias/categorias.module';
 import { EventoModule } from './modules/eventos/evento.module';
 import { EventosModule } from './modules/eventos/eventos.module';
@@ -39,6 +40,7 @@ import { PrismaModule } from './prisma/prisma.module';
     ResultadoCorridaModule,
     CategoriasModule,
     EventosModule,
+    CategoriasEventosModule,
   ],
   controllers: [AppController],
   providers: [

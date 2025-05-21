@@ -270,7 +270,7 @@ Authorization: Bearer {token}
 **Códigos de Erro**:
 
 - 401 Unauthorized: Token ausente ou inválido
-- 403 Forbidden: Tentativa de excluir perfil de outro usuário sem permissão de ADMIN
+- 403 Forbidden: Tentativa de excluir perfil de outro usuário com permissão de ADMIN
 - 404 Not Found: Usuário não encontrado
 
 ## Eventos
@@ -1176,44 +1176,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### Excluir Minha Inscrição
-
-```http
-DELETE /api/v1/evento-inscricoes/minha-inscricao/:eventoId
-```
-
-**Permissões**:
-
-- Requer JWT Token
-- Nível mínimo: USUARIO (0)
-
-**Headers**
-
-```
-Authorization: Bearer {token}
-```
-
-**Resposta (200 OK)**
-
-```json
-{
-  "message": "Inscrição removida com sucesso"
-}
-```
-
-**Códigos de Erro**:
-
-- 400 Bad Request:
-  - Evento não encontrado
-  - Evento cancelado ou finalizado
-  - Prazo de inscrição encerrado
-  - Capacidade máxima do evento atingida
-- 401 Unauthorized: Token ausente ou inválido
-- 403 Forbidden: Tentativa de operação não autorizada
-- 404 Not Found: Inscrição não encontrada
-- 409 Conflict: Usuário já inscrito no evento
-
-## Resultados de Corridas
+### Resultados de Corridas
 
 ### Registrar Resultado de Corrida
 
@@ -1827,10 +1790,180 @@ Authorization: Bearer {token}
 }
 ```
 
+## Categorias-Eventos
+
+### Criar Múltiplas Relações Evento-Categoria
+
+```http
+POST /api/v1/categorias-eventos
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ADMIN (2)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body**
+
+```json
+{
+  "items": [
+    {
+      "eventoId": 1,
+      "categoriaId": 1
+    },
+    {
+      "eventoId": 1,
+      "categoriaId": 2
+    },
+    {
+      "eventoId": 2,
+      "categoriaId": 1
+    }
+  ]
+}
+```
+
+**Resposta (201 Created)**
+
+```json
+{
+  "message": "3 relações evento-categoria criadas com sucesso"
+}
+```
+
+### Adicionar Categorias a um Evento
+
+```http
+POST /api/v1/categorias-eventos/eventos/:eventoId/categorias
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ORGANIZADOR (1)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body**
+
+```json
+{
+  "categoriaIds": [1, 2, 3]
+}
+```
+
+**Resposta (201 Created)**
+
+```json
+{
+  "message": "3 categorias adicionadas ao evento Maratona de São Paulo",
+  "eventoId": 1,
+  "categoriasAdicionadas": 3
+}
+```
+
+### Adicionar Eventos a uma Categoria
+
+```http
+POST /api/v1/categorias-eventos/categorias/:categoriaId/eventos
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ADMIN (2)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body**
+
+```json
+{
+  "eventoIds": [1, 2, 3]
+}
+```
+
+**Resposta (201 Created)**
+
+```json
+{
+  "message": "3 eventos adicionados à categoria 42km",
+  "categoriaId": 1,
+  "eventosAdicionados": 3
+}
+```
+
+### Listar Relações Evento-Categoria
+
+```http
+GET /api/v1/categorias-eventos
+```
+
+**Permissões**: Público (não requer autenticação)
+
+**Query Parameters**
+
+```
+eventoId?: number
+categoriaId?: number
+page?: number (default: 1)
+limit?: number (default: 10)
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "data": [
+    {
+      "eventoId": 1,
+      "categoriaId": 1,
+      "evento": {
+        "id": 1,
+        "nome": "Maratona de São Paulo",
+        "dataInicio": "2024-05-01T07:00:00Z",
+        "modalidade": "Corrida",
+        "capaUrl": "https://exemplo.com/capa-evento.jpg",
+        "status": "Agendado"
+      },
+      "categoria": {
+        "id": 1,
+        "nome": "42km",
+        "descricao": "Maratona completa",
+        "distancia": 42.195,
+        "iconeUrl": "https://exemplo.com/icones/maratona.png"
+      }
+    }
+    // ... mais relações
+  ],
+  "meta": {
+    "total": 10,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1
+  }
+}
+```
+
 ### Listar Categorias de um Evento
 
 ```http
-GET /api/v1/categorias/evento/:eventoId
+GET /api/v1/categorias-eventos/eventos/:eventoId/categorias
 ```
 
 **Permissões**: Público (não requer autenticação)
@@ -1856,9 +1989,121 @@ GET /api/v1/categorias/evento/:eventoId
 ]
 ```
 
+### Listar Eventos de uma Categoria
+
+```http
+GET /api/v1/categorias-eventos/categorias/:categoriaId/eventos
+```
+
+**Permissões**: Público (não requer autenticação)
+
+**Resposta (200 OK)**
+
+```json
+[
+  {
+    "id": 1,
+    "nome": "Maratona de São Paulo",
+    "dataInicio": "2024-05-01T07:00:00Z",
+    "modalidade": "Corrida",
+    "capaUrl": "https://exemplo.com/capa-evento.jpg",
+    "status": "Agendado"
+  },
+  {
+    "id": 2,
+    "nome": "Meia Maratona do Rio",
+    "dataInicio": "2024-06-15T07:00:00Z",
+    "modalidade": "Corrida",
+    "capaUrl": "https://exemplo.com/capa-evento-rio.jpg",
+    "status": "Agendado"
+  }
+]
+```
+
+### Remover uma Categoria de um Evento
+
+```http
+DELETE /api/v1/categorias-eventos/eventos/:eventoId/categorias/:categoriaId
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ORGANIZADOR (1)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "message": "Categoria 42km removida do evento Maratona de São Paulo",
+  "eventoId": 1,
+  "categoriaId": 1
+}
+```
+
+### Remover Todas as Categorias de um Evento
+
+```http
+DELETE /api/v1/categorias-eventos/eventos/:eventoId/categorias
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ORGANIZADOR (1)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "message": "3 categorias removidas do evento Maratona de São Paulo",
+  "eventoId": 1,
+  "categoriasRemovidas": 3
+}
+```
+
+### Remover Todos os Eventos de uma Categoria
+
+```http
+DELETE /api/v1/categorias-eventos/categorias/:categoriaId/eventos
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ADMIN (2)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "message": "2 eventos removidos da categoria 42km",
+  "categoriaId": 1,
+  "eventosRemovidos": 2
+}
+```
+
 **Códigos de Erro**:
 
-- 400 Bad Request: Dados inválidos
+- 400 Bad Request: Dados inválidos ou relação inexistente
 - 401 Unauthorized: Token ausente ou inválido
 - 403 Forbidden: Não tem permissão para acessar esse recurso
 - 404 Not Found: Categoria ou evento não encontrado

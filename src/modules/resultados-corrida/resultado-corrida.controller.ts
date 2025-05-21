@@ -19,18 +19,23 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Roles } from '../../core/auth/decorators/roles.decorator';
+import {
+  NivelPermissao,
+  Roles,
+} from '../../core/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../core/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../core/auth/guards/roles.guard';
+import { PrismaService } from '../../prisma/prisma.service';
 import { CreateResultadoCorridaDto } from './dtos/create-resultado-corrida.dto';
 import { UpdateResultadoCorridaDto } from './dtos/update-resultado-corrida.dto';
 import { ResultadoCorridaService } from './resultado-corrida.service';
 
 @ApiTags('Resultados de Corridas')
-@Controller('resultados-corrida')
+@Controller('api/v1/resultados-corrida')
 export class ResultadoCorridaController {
   constructor(
     private readonly resultadoCorridaService: ResultadoCorridaService,
+    private readonly prisma: PrismaService, // Add PrismaService injection
   ) {}
 
   @Post()
@@ -207,18 +212,16 @@ export class ResultadoCorridaController {
 
   @Delete('evento/:eventoId/bulk')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(10) // Admin
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Remover todos os resultados de um evento (Admin)' })
-  @ApiParam({ name: 'eventoId', type: Number })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Resultados removidos com sucesso',
-  })
-  async bulkRemoveEventoResultados(@Param('eventoId') eventoId: number) {
+  @Roles(NivelPermissao.ADMIN)
+  async deleteAllEventResults(
+    @Param('eventoId') eventoId: string,
+  ): Promise<{ message: string }> {
     const { count } = await this.prisma.resultadoCorrida.deleteMany({
-      where: { eventoId: +eventoId },
+      where: { eventoId: Number(eventoId) },
     });
-    return { message: `${count} resultados removidos com sucesso` };
+
+    return {
+      message: `${count} resultados removidos com sucesso`,
+    };
   }
 }

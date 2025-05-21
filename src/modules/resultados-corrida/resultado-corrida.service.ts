@@ -5,26 +5,36 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { EventoService } from '../eventos/evento.service';
+import { UsuarioService } from '../usuarios/usuario.service';
 import { CreateResultadoCorridaDto } from './dtos/create-resultado-corrida.dto';
 import { UpdateResultadoCorridaDto } from './dtos/update-resultado-corrida.dto';
 import { ResultadoCorrida } from './entities/resultado-corrida.entity';
+import {
+  convertPrismaResultadoCorrida,
+  convertPrismaResultadoCorridaArray,
+} from './utils/prisma-conversion.util';
 
 @Injectable()
 export class ResultadoCorridaService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventoService: EventoService,
+    private readonly usuarioService: UsuarioService,
+  ) {}
 
   async create(
-    userId: number,
-    createDto: CreateResultadoCorridaDto,
+    usuarioId: number,
+    createResultadoCorridaDto: CreateResultadoCorridaDto,
   ): Promise<ResultadoCorrida> {
     // Verificar se o evento existe
     const evento = await this.prisma.evento.findUnique({
-      where: { id: createDto.eventoId },
+      where: { id: createResultadoCorridaDto.eventoId },
     });
 
     if (!evento) {
       throw new NotFoundException(
-        `Evento com ID ${createDto.eventoId} não encontrado`,
+        `Evento com ID ${createResultadoCorridaDto.eventoId} não encontrado`,
       );
     }
 
@@ -32,8 +42,8 @@ export class ResultadoCorridaService {
     const existingResult = await this.prisma.resultadoCorrida.findUnique({
       where: {
         usuarioId_eventoId: {
-          usuarioId: userId,
-          eventoId: createDto.eventoId,
+          usuarioId,
+          eventoId: createResultadoCorridaDto.eventoId,
         },
       },
     });
@@ -46,25 +56,26 @@ export class ResultadoCorridaService {
 
     // Preparar os dados para criação
     const data = {
-      usuarioId: userId,
-      eventoId: createDto.eventoId,
-      posicaoGeral: createDto.posicaoGeral,
-      posicaoCategoria: createDto.posicaoCategoria,
-      tempoLiquido: createDto.tempoLiquido,
-      tempoBruto: createDto.tempoBruto,
-      categoriaCorreida: createDto.categoriaCorreida,
-      ritmoMedio: createDto.ritmoMedio,
-      velocidadeMedia: createDto.velocidadeMedia,
-      distanciaPercorrida: createDto.distanciaPercorrida,
-      linkCertificado: createDto.linkCertificado,
-      validado: createDto.validado || false,
-      fonteDados: createDto.fonteDados || 'manual',
-      chipId: createDto.chipId,
-      splits: createDto.splits ? JSON.parse(createDto.splits) : null,
+      usuarioId,
+      eventoId: createResultadoCorridaDto.eventoId,
+      tempoLiquido: createResultadoCorridaDto.tempoLiquido,
+      tempoBruto: createResultadoCorridaDto.tempoBruto || null,
+      posicaoGeral: createResultadoCorridaDto.posicaoGeral || null,
+      posicaoCategoria: createResultadoCorridaDto.posicaoCategoria || null,
+      categoriaCorreida: createResultadoCorridaDto.categoriaCorreida || null,
+      ritmoMedio: createResultadoCorridaDto.ritmoMedio || null,
+      velocidadeMedia: createResultadoCorridaDto.velocidadeMedia || null,
+      distanciaPercorrida:
+        createResultadoCorridaDto.distanciaPercorrida || null,
+      linkCertificado: createResultadoCorridaDto.linkCertificado || null,
+      validado: false,
+      fonteDados: 'manual',
+      chipId: createResultadoCorridaDto.chipId || null,
+      splits: createResultadoCorridaDto.splits || {},
     };
 
-    // Criar o resultado
-    return this.prisma.resultadoCorrida.create({ data });
+    const resultado = await this.prisma.resultadoCorrida.create({ data });
+    return resultado as unknown as ResultadoCorrida;
   }
 
   async findAll(filters?: {
@@ -86,7 +97,7 @@ export class ResultadoCorridaService {
       }
     }
 
-    return this.prisma.resultadoCorrida.findMany({
+    const resultados = await this.prisma.resultadoCorrida.findMany({
       where,
       include: {
         usuario: {
@@ -109,6 +120,8 @@ export class ResultadoCorridaService {
         },
       },
     });
+
+    return resultados as unknown as ResultadoCorrida[];
   }
 
   async findOne(id: number): Promise<ResultadoCorrida> {
@@ -140,7 +153,7 @@ export class ResultadoCorridaService {
       throw new NotFoundException(`Resultado com ID ${id} não encontrado`);
     }
 
-    return resultado;
+    return convertPrismaResultadoCorrida(resultado);
   }
 
   async update(
@@ -205,10 +218,12 @@ export class ResultadoCorridaService {
       data.splits = JSON.parse(updateDto.splits);
 
     // Atualizar o resultado
-    return this.prisma.resultadoCorrida.update({
+    const resultadoAtualizado = await this.prisma.resultadoCorrida.update({
       where: { id },
       data,
     });
+
+    return convertPrismaResultadoCorrida(resultadoAtualizado);
   }
 
   async remove(id: number, userId: number, isAdmin = false): Promise<void> {
@@ -283,7 +298,7 @@ export class ResultadoCorridaService {
       throw new NotFoundException(`Evento com ID ${eventoId} não encontrado`);
     }
 
-    return this.prisma.resultadoCorrida.findMany({
+    const resultados = await this.prisma.resultadoCorrida.findMany({
       where: { eventoId },
       include: {
         usuario: {
@@ -298,10 +313,12 @@ export class ResultadoCorridaService {
       },
       orderBy: [{ posicaoGeral: 'asc' }, { tempoLiquido: 'asc' }],
     });
+
+    return convertPrismaResultadoCorridaArray(resultados);
   }
 
   async getUserResultados(userId: number): Promise<ResultadoCorrida[]> {
-    return this.prisma.resultadoCorrida.findMany({
+    const resultados = await this.prisma.resultadoCorrida.findMany({
       where: { usuarioId: userId },
       include: {
         evento: {
@@ -317,5 +334,7 @@ export class ResultadoCorridaService {
       },
       orderBy: { evento: { dataInicio: 'desc' } },
     });
+
+    return convertPrismaResultadoCorridaArray(resultados);
   }
 }

@@ -10,10 +10,23 @@ import {
 export class CategoriaRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  // Helper method to convert Prisma Categoria to CategoriaResponse
+  private mapToCategoriaResponse(categoria: any): CategoriaResponse {
+    return {
+      id: categoria.id,
+      nome: categoria.nome,
+      descricao: categoria.descricao,
+      distancia: categoria.distancia,
+      iconeUrl: categoria.iconeUrl,
+    };
+  }
+
   async create(data: Prisma.CategoriaCreateInput): Promise<CategoriaResponse> {
-    return this.prisma.categoria.create({
+    const categoria = await this.prisma.categoria.create({
       data,
     });
+
+    return this.mapToCategoriaResponse(categoria);
   }
 
   async findAll(
@@ -25,7 +38,7 @@ export class CategoriaRepository {
   ): Promise<CategoriaPaginationResponse> {
     const total = await this.prisma.categoria.count({ where });
 
-    const data = await this.prisma.categoria.findMany({
+    const categorias = await this.prisma.categoria.findMany({
       where,
       skip,
       take,
@@ -35,7 +48,9 @@ export class CategoriaRepository {
     });
 
     return {
-      data,
+      data: categorias.map((categoria) =>
+        this.mapToCategoriaResponse(categoria),
+      ),
       meta: {
         total,
         page,
@@ -46,35 +61,45 @@ export class CategoriaRepository {
   }
 
   async findById(id: number): Promise<CategoriaResponse | null> {
-    return this.prisma.categoria.findUnique({
+    const categoria = await this.prisma.categoria.findUnique({
       where: { id },
     });
+
+    return categoria ? this.mapToCategoriaResponse(categoria) : null;
   }
 
   async findByIds(ids: number[]): Promise<CategoriaResponse[]> {
-    return this.prisma.categoria.findMany({
+    const categorias = await this.prisma.categoria.findMany({
       where: {
         id: {
           in: ids,
         },
       },
     });
+
+    return categorias.map((categoria) =>
+      this.mapToCategoriaResponse(categoria),
+    );
   }
 
   async update(
     id: number,
     data: Prisma.CategoriaUpdateInput,
   ): Promise<CategoriaResponse> {
-    return this.prisma.categoria.update({
+    const categoria = await this.prisma.categoria.update({
       where: { id },
       data,
     });
+
+    return this.mapToCategoriaResponse(categoria);
   }
 
   async delete(id: number): Promise<CategoriaResponse> {
-    return this.prisma.categoria.delete({
+    const categoria = await this.prisma.categoria.delete({
       where: { id },
     });
+
+    return this.mapToCategoriaResponse(categoria);
   }
 
   async findByEventoId(eventoId: number): Promise<CategoriaResponse[]> {
@@ -87,6 +112,6 @@ export class CategoriaRepository {
       },
     });
 
-    return categorias.map((ec) => ec.categoria);
+    return categorias.map((ec) => this.mapToCategoriaResponse(ec.categoria));
   }
 }

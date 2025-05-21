@@ -1,9 +1,11 @@
+import { Decimal } from '@prisma/client/runtime/library';
+
 export interface CategoriaResponse {
   id: number;
   nome: string;
-  descricao?: string;
-  distancia?: number;
-  iconeUrl?: string;
+  descricao?: string | null;
+  distancia?: Decimal | number | null;
+  iconeUrl?: string | null;
 }
 
 export interface CategoriaPaginationResponse {

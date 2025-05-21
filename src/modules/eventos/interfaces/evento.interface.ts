@@ -21,19 +21,18 @@ export interface EventoResponse {
 }
 
 export interface EventoDetailResponse extends EventoResponse {
-  organizador: {
+  organizador?: {
     id: number;
     nome: string;
-    email: string;
+    email?: string;
     fotoPerfilUrl?: string;
   };
   categorias?: Array<{
-    categoriaId: number;
     categoria: {
       id: number;
       nome: string;
       descricao?: string;
-      distancia?: Decimal;
+      distancia?: number;
       iconeUrl?: string;
     };
   }>;

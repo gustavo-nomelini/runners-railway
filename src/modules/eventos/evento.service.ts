@@ -10,10 +10,14 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateEventoDto } from './dtos/create-evento.dto';
 import { FindEventosDto } from './dtos/find-eventos.dto';
 import { UpdateEventoDto } from './dtos/update-evento.dto';
+import { EventoRepository } from './evento.repository';
 
 @Injectable()
 export class EventoService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventoRepository: EventoRepository,
+  ) {}
 
   /**
    * Criar um novo evento
@@ -152,26 +156,6 @@ export class EventoService {
     }
 
     // Se categoriaId foi fornecido, adiciona a condição para filtrar por categoria
-    const include: Prisma.EventoInclude = {
-      categorias: {
-        include: {
-          categoria: true,
-        },
-      },
-      organizador: {
-        select: {
-          id: true,
-          nome: true,
-          fotoPerfilUrl: true,
-        },
-      },
-      _count: {
-        select: {
-          inscricoes: true,
-        },
-      },
-    };
-
     if (categoriaId) {
       where.categorias = {
         some: {
@@ -180,79 +164,20 @@ export class EventoService {
       };
     }
 
-    // Consulta para o total de registros
-    const total = await this.prisma.evento.count({ where });
-
-    // Consulta para os dados com paginação
-    const data = await this.prisma.evento.findMany({
-      where,
-      include,
-      skip,
-      take: limit,
-      orderBy: {
-        dataInicio: 'asc',
-      },
-    });
-
-    // Calcular estatísticas de inscrições (opcional)
-    const eventos = data.map((evento) => ({
-      ...evento,
-      totalInscritos: evento._count.inscricoes,
-      _count: undefined,
-    }));
-
-    return {
-      data: eventos,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+    return this.eventoRepository.findAll(where, skip, limit, page, limit);
   }
 
   /**
    * Encontrar um único evento pelo ID
    */
   async findOne(id: number) {
-    const evento = await this.prisma.evento.findUnique({
-      where: { id },
-      include: {
-        organizador: {
-          select: {
-            id: true,
-            nome: true,
-            email: true,
-            fotoPerfilUrl: true,
-          },
-        },
-        categorias: {
-          include: {
-            categoria: true,
-          },
-        },
-        _count: {
-          select: {
-            inscricoes: true,
-            comentarios: true,
-            fotos: true,
-          },
-        },
-      },
-    });
+    const evento = await this.eventoRepository.findById(id);
 
     if (!evento) {
       throw new NotFoundException(`Evento com ID ${id} não encontrado`);
     }
 
-    return {
-      ...evento,
-      totalInscritos: evento._count.inscricoes,
-      totalComentarios: evento._count.comentarios,
-      totalFotos: evento._count.fotos,
-      _count: undefined,
-    };
+    return evento;
   }
 
   /**

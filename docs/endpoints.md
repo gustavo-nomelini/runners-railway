@@ -1314,7 +1314,6 @@ validado?: boolean
     "usuarioId": 5,
     "eventoId": 1,
     "tempoLiquido": "01:45:30",
-    "tempoBruto": "01:46:15",
     "posicaoGeral": 120,
     "posicaoCategoria": 15,
     "usuario": {
@@ -1657,13 +1656,210 @@ Authorization: Bearer {token}
 }
 ```
 
-## Códigos de Erro Comuns
+## Categorias
 
-Todas as rotas podem retornar os seguintes erros:
+### Criar Categoria
 
-- **400 Bad Request**: Dados inválidos ou mal formatados
-- **401 Unauthorized**: Token ausente ou inválido
-- **403 Forbidden**: Sem permissão para acessar o recurso
-- **404 Not Found**: Recurso não encontrado
-- **409 Conflict**: Conflito com recurso existente
-- **500 Internal Server Error**: Erro interno do servidor
+```http
+POST /api/v1/categorias
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ADMIN (2)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body**
+
+```json
+{
+  "nome": "42km",
+  "descricao": "Maratona completa",
+  "distancia": 42.195,
+  "iconeUrl": "https://exemplo.com/icones/maratona.png"
+}
+```
+
+**Resposta (201 Created)**
+
+```json
+{
+  "id": 1,
+  "nome": "42km",
+  "descricao": "Maratona completa",
+  "distancia": 42.195,
+  "iconeUrl": "https://exemplo.com/icones/maratona.png"
+}
+```
+
+### Listar Categorias
+
+```http
+GET /api/v1/categorias
+```
+
+**Permissões**: Público (não requer autenticação)
+
+**Query Parameters**
+
+```
+nome?: string (busca parcial)
+page?: number (default: 1)
+limit?: number (default: 10)
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "nome": "42km",
+      "descricao": "Maratona completa",
+      "distancia": 42.195,
+      "iconeUrl": "https://exemplo.com/icones/maratona.png"
+    },
+    {
+      "id": 2,
+      "nome": "21km",
+      "descricao": "Meia-maratona",
+      "distancia": 21.0975,
+      "iconeUrl": "https://exemplo.com/icones/meia-maratona.png"
+    }
+  ],
+  "meta": {
+    "total": 5,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1
+  }
+}
+```
+
+### Buscar Categoria por ID
+
+```http
+GET /api/v1/categorias/:id
+```
+
+**Permissões**: Público (não requer autenticação)
+
+**Resposta (200 OK)**
+
+```json
+{
+  "id": 1,
+  "nome": "42km",
+  "descricao": "Maratona completa",
+  "distancia": 42.195,
+  "iconeUrl": "https://exemplo.com/icones/maratona.png"
+}
+```
+
+### Atualizar Categoria
+
+```http
+PATCH /api/v1/categorias/:id
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ADMIN (2)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body** (campos opcionais)
+
+```json
+{
+  "nome": "42.2km",
+  "descricao": "Maratona oficial - distância olímpica",
+  "iconeUrl": "https://exemplo.com/icones/maratona-novo.png"
+}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "id": 1,
+  "nome": "42.2km",
+  "descricao": "Maratona oficial - distância olímpica",
+  "distancia": 42.195,
+  "iconeUrl": "https://exemplo.com/icones/maratona-novo.png"
+}
+```
+
+### Remover Categoria
+
+```http
+DELETE /api/v1/categorias/:id
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ADMIN (2)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "message": "Categoria com ID 1 foi removida com sucesso"
+}
+```
+
+### Listar Categorias de um Evento
+
+```http
+GET /api/v1/categorias/evento/:eventoId
+```
+
+**Permissões**: Público (não requer autenticação)
+
+**Resposta (200 OK)**
+
+```json
+[
+  {
+    "id": 1,
+    "nome": "42km",
+    "descricao": "Maratona completa",
+    "distancia": 42.195,
+    "iconeUrl": "https://exemplo.com/icones/maratona.png"
+  },
+  {
+    "id": 2,
+    "nome": "21km",
+    "descricao": "Maratona de revezamento",
+    "distancia": 21.0975,
+    "iconeUrl": "https://exemplo.com/icones/maratona-revezamento.png"
+  }
+]
+```
+
+**Códigos de Erro**:
+
+- 400 Bad Request: Dados inválidos
+- 401 Unauthorized: Token ausente ou inválido
+- 403 Forbidden: Não tem permissão para acessar esse recurso
+- 404 Not Found: Categoria ou evento não encontrado
+- 500 Internal Server Error: Erro interno do servidor

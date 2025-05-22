@@ -17,6 +17,8 @@ CREATE TABLE "usuarios" (
     "genero" VARCHAR(30),
     "preferencias" JSONB,
     "nome_empresa" TEXT,
+    -- "cpf" varchar(11) NOT NULL,
+    -- "cnpj" varchar(14) NOT NULL,
     "cnpj" TEXT,
     "site" TEXT,
 

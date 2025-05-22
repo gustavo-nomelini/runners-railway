@@ -108,5 +108,15 @@ export class CreateUsuarioDto {
   @IsString()
   @MaxLength(50)
   pais?: string;
+
+  @ApiProperty({
+    required: false,
+    example: 'Masculino',
+    description: 'Gênero do usuário',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  genero?: string;
 }
 

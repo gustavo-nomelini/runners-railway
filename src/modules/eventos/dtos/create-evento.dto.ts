@@ -91,6 +91,12 @@ export class CreateEventoDto {
   @IsOptional()
   siteOficial?: string;
 
+  @ApiPropertyOptional({ description: 'Distância oficial do evento em km' })
+  @IsDecimal({ decimal_digits: '0,2' })
+  @IsOptional()
+  @Transform(({ value }) => (value ? parseFloat(value) : undefined))
+  distancia?: number;
+
   @ApiPropertyOptional({ description: 'Metadados adicionais em formato JSON' })
   @IsJSON()
   @IsOptional()

@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { BadRequestException, HttpStatus, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import rateLimit from 'express-rate-limit';
@@ -32,16 +32,30 @@ async function bootstrap() {
 
   app.useLogger(logger);
 
+// Aplica o ValidationPipe globalmente com a transformação habilitada
+// e a remoção de propriedades não validadas
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
-      transform: true,
+      whitelist: true, // Remove propriedades não validadas/decoradas
+      transform: true, // Transforma os dados recebidos para o tipo correto
       forbidNonWhitelisted: true,
       transformOptions: {
         enableImplicitConversion: true,
       },
+      exceptionFactory: (errors) => {
+        const formattedErrors = errors.reduce((acc, error) => {
+          acc[error.property] = Object.values(error.constraints || {});
+          return acc;
+        }, {});
+        return new BadRequestException({
+          message: 'Validation failed',
+          errors: formattedErrors,
+        });
+      },
     }),
   );
+
+
 
   // CORS Configuration with more secure settings for production
   const allowedOrigins = isProduction

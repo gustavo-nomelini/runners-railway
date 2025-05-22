@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
   IsDateString,
   IsEmail,
@@ -40,6 +41,19 @@ export class CreateUsuarioDto {
     message: 'A senha deve conter pelo menos uma letra e um número',
   })
   senha: string;
+
+  @ApiProperty({
+    example: '123.456.789-00',
+    description: 'CPF do usuário (com ou sem formatação)',
+  })
+  @IsString()
+  @IsNotEmpty()
+  @Transform(({ value }) => value.replace(/[^\d]/g, ''))
+  @Matches(/^(\d{11}|\d{3}\.\d{3}\.\d{3}-\d{2})$/, {
+    message:
+      'CPF deve conter 11 dígitos numéricos, podendo incluir pontos e traço',
+  })
+  cpf: string;
 
   @ApiProperty({
     required: false,

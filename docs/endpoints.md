@@ -1,5 +1,41 @@
 # API Endpoints Documentation
 
+## Níveis de Permissão
+
+O sistema possui os seguintes níveis de permissão:
+
+- **Nível 0 (USUARIO)**: Usuário básico
+
+  - Pode visualizar eventos
+  - Pode se inscrever em eventos
+  - Pode gerenciar seu próprio perfil
+  - Pode ver suas próprias inscrições
+
+- **Nível 1 (ORGANIZADOR)**: Organizador de eventos
+
+  - Todas as permissões do nível 0
+  - Pode criar eventos
+  - Pode gerenciar seus próprios eventos
+  - Pode ver inscritos em seus eventos
+
+- **Nível 2 (ADMIN)**: Administrador do sistema
+  - Todas as permissões dos níveis 0 e 1
+  - Pode gerenciar todos os usuários
+  - Pode gerenciar todos os eventos
+  - Pode alterar níveis de permissão
+  - Pode ver todas as inscrições
+
+## Códigos de Erro
+
+Todas as rotas podem retornar os seguintes erros:
+
+- **400 Bad Request**: Dados inválidos ou mal formatados
+- **401 Unauthorized**: Token ausente ou inválido
+- **403 Forbidden**: Sem permissão para acessar o recurso
+- **404 Not Found**: Recurso não encontrado
+- **500 Internal Server Error**: Erro interno do servidor
+
+
 ## Autenticação e Usuários
 
 ### Registro de Usuário Normal
@@ -270,7 +306,7 @@ Authorization: Bearer {token}
 **Códigos de Erro**:
 
 - 401 Unauthorized: Token ausente ou inválido
-- 403 Forbidden: Tentativa de excluir perfil de outro usuário sem permissão de ADMIN
+- 403 Forbidden: Tentativa de excluir perfil de outro usuário com permissão de ADMIN
 - 404 Not Found: Usuário não encontrado
 
 ## Eventos
@@ -740,41 +776,6 @@ Authorization: Bearer {token}
 }
 ```
 
-## Níveis de Permissão
-
-O sistema possui os seguintes níveis de permissão:
-
-- **Nível 0 (USUARIO)**: Usuário básico
-
-  - Pode visualizar eventos
-  - Pode se inscrever em eventos
-  - Pode gerenciar seu próprio perfil
-  - Pode ver suas próprias inscrições
-
-- **Nível 1 (ORGANIZADOR)**: Organizador de eventos
-
-  - Todas as permissões do nível 0
-  - Pode criar eventos
-  - Pode gerenciar seus próprios eventos
-  - Pode ver inscritos em seus eventos
-
-- **Nível 2 (ADMIN)**: Administrador do sistema
-  - Todas as permissões dos níveis 0 e 1
-  - Pode gerenciar todos os usuários
-  - Pode gerenciar todos os eventos
-  - Pode alterar níveis de permissão
-  - Pode ver todas as inscrições
-
-## Códigos de Erro
-
-Todas as rotas podem retornar os seguintes erros:
-
-- **400 Bad Request**: Dados inválidos ou mal formatados
-- **401 Unauthorized**: Token ausente ou inválido
-- **403 Forbidden**: Sem permissão para acessar o recurso
-- **404 Not Found**: Recurso não encontrado
-- **500 Internal Server Error**: Erro interno do servidor
-
 ## Inscrições em Eventos (UsuarioEvento)
 
 ### Registrar em Evento
@@ -1176,10 +1177,166 @@ Authorization: Bearer {token}
 }
 ```
 
-### Excluir Minha Inscrição
+### Resultados de Corridas
+
+### Registrar Resultado de Corrida
 
 ```http
-DELETE /api/v1/evento-inscricoes/minha-inscricao/:eventoId
+POST /api/v1/resultados-corrida
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: USUARIO (0)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body**
+
+```json
+{
+  "eventoId": 1,
+  "tempoLiquido": "01:45:30",
+  "tempoBruto": "01:46:15",
+  "posicaoGeral": 120,
+  "posicaoCategoria": 15,
+  "categoriaCorreida": "M30-34",
+  "ritmoMedio": "05:05",
+  "velocidadeMedia": 11.8,
+  "distanciaPercorrida": 21.1,
+  "linkCertificado": "https://exemplo.com/certificado/123",
+  "chipId": "ABC12345",
+  "splits": {
+    "5k": "00:25:30",
+    "10k": "00:51:15",
+    "15k": "01:18:45",
+    "20k": "01:42:00"
+  }
+}
+```
+
+**Resposta (201 Created)**
+
+```json
+{
+  "id": 1,
+  "usuarioId": 5,
+  "eventoId": 1,
+  "tempoLiquido": "01:45:30",
+  "tempoBruto": "01:46:15",
+  "posicaoGeral": 120,
+  "posicaoCategoria": 15,
+  "categoriaCorreida": "M30-34",
+  "ritmoMedio": "05:05",
+  "velocidadeMedia": 11.8,
+  "distanciaPercorrida": 21.1,
+  "linkCertificado": "https://exemplo.com/certificado/123",
+  "validado": false,
+  "fonteDados": "manual",
+  "chipId": "ABC12345",
+  "splits": {
+    "5k": "00:25:30",
+    "10k": "00:51:15",
+    "15k": "01:18:45",
+    "20k": "01:42:00"
+  }
+}
+```
+
+**Códigos de Erro**:
+
+- 400 Bad Request: Evento não encontrado
+- 409 Conflict: Usuário já possui um resultado para este evento
+
+### Listar Resultados de Corridas
+
+```http
+GET /api/v1/resultados-corrida
+```
+
+**Permissões**: Público (não requer autenticação)
+
+**Query Parameters**
+
+```
+eventoId?: number
+usuarioId?: number
+validado?: boolean
+```
+
+**Resposta (200 OK)**
+
+```json
+[
+  {
+    "id": 1,
+    "usuarioId": 5,
+    "eventoId": 1,
+    "tempoLiquido": "01:45:30",
+    "posicaoGeral": 120,
+    "posicaoCategoria": 15,
+    "usuario": {
+      "id": 5,
+      "nome": "João Silva",
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "fotoPerfilUrl": "https://exemplo.com/foto.jpg"
+    },
+    "evento": {
+      "id": 1,
+      "nome": "Meia Maratona de São Paulo",
+      "dataInicio": "2024-06-15T06:00:00.000Z",
+      "localizacao": "São Paulo, SP"
+    }
+  }
+  // mais resultados
+]
+```
+
+### Listar Resultados de um Evento
+
+```http
+GET /api/v1/resultados-corrida/evento/:eventoId
+```
+
+**Permissões**: Público (não requer autenticação)
+
+**Resposta (200 OK)**
+
+```json
+[
+  {
+    "id": 1,
+    "usuarioId": 5,
+    "eventoId": 1,
+    "tempoLiquido": "01:45:30",
+    "posicaoGeral": 120,
+    "posicaoCategoria": 15,
+    "categoriaCorreida": "M30-34",
+    "usuario": {
+      "id": 5,
+      "nome": "João Silva",
+      "cidade": "São Paulo",
+      "estado": "SP"
+    }
+  }
+  // mais resultados
+]
+```
+
+**Códigos de Erro**:
+
+- 404 Not Found: Evento não encontrado
+
+### Listar Meus Resultados
+
+```http
+GET /api/v1/resultados-corrida/usuario/meus-resultados
 ```
 
 **Permissões**:
@@ -1196,19 +1353,759 @@ Authorization: Bearer {token}
 **Resposta (200 OK)**
 
 ```json
+[
+  {
+    "id": 1,
+    "eventoId": 1,
+    "tempoLiquido": "01:45:30",
+    "posicaoGeral": 120,
+    "evento": {
+      "id": 1,
+      "nome": "Meia Maratona de São Paulo",
+      "dataInicio": "2024-06-15T06:00:00.000Z",
+      "localizacao": "São Paulo, SP",
+      "modalidade": "Corrida de Rua",
+      "capaUrl": "https://exemplo.com/capa.jpg"
+    }
+  }
+  // mais resultados
+]
+```
+
+### Listar Resultados de um Usuário
+
+```http
+GET /api/v1/resultados-corrida/usuario/:usuarioId
+```
+
+**Permissões**: Público (não requer autenticação)
+
+**Resposta (200 OK)**
+
+```json
+[
+  {
+    "id": 1,
+    "eventoId": 1,
+    "tempoLiquido": "01:45:30",
+    "posicaoGeral": 120,
+    "evento": {
+      "id": 1,
+      "nome": "Meia Maratona de São Paulo",
+      "dataInicio": "2024-06-15T06:00:00.000Z",
+      "localizacao": "São Paulo, SP",
+      "modalidade": "Corrida de Rua",
+      "capaUrl": "https://exemplo.com/capa.jpg"
+    }
+  }
+  // mais resultados
+]
+```
+
+### Obter Resultado Específico
+
+```http
+GET /api/v1/resultados-corrida/:id
+```
+
+**Permissões**: Público (não requer autenticação)
+
+**Resposta (200 OK)**
+
+```json
 {
-  "message": "Inscrição removida com sucesso"
+  "id": 1,
+  "usuarioId": 5,
+  "eventoId": 1,
+  "tempoLiquido": "01:45:30",
+  "tempoBruto": "01:46:15",
+  "posicaoGeral": 120,
+  "posicaoCategoria": 15,
+  "categoriaCorreida": "M30-34",
+  "ritmoMedio": "05:05",
+  "velocidadeMedia": 11.8,
+  "distanciaPercorrida": 21.1,
+  "linkCertificado": "https://exemplo.com/certificado/123",
+  "validado": false,
+  "fonteDados": "manual",
+  "chipId": "ABC12345",
+  "splits": {
+    "5k": "00:25:30",
+    "10k": "00:51:15",
+    "15k": "01:18:45",
+    "20k": "01:42:00"
+  },
+  "usuario": {
+    "id": 5,
+    "nome": "João Silva",
+    "cidade": "São Paulo",
+    "estado": "SP",
+    "fotoPerfilUrl": "https://exemplo.com/foto.jpg"
+  },
+  "evento": {
+    "id": 1,
+    "nome": "Meia Maratona de São Paulo",
+    "dataInicio": "2024-06-15T06:00:00.000Z",
+    "localizacao": "São Paulo, SP",
+    "modalidade": "Corrida de Rua"
+  }
 }
 ```
 
 **Códigos de Erro**:
 
-- 400 Bad Request:
-  - Evento não encontrado
-  - Evento cancelado ou finalizado
-  - Prazo de inscrição encerrado
-  - Capacidade máxima do evento atingida
+- 404 Not Found: Resultado não encontrado
+
+### Atualizar Resultado
+
+```http
+PATCH /api/v1/resultados-corrida/:id
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: USUARIO (0)
+- Usuário só pode atualizar seu próprio resultado
+- Organizador do evento pode atualizar qualquer resultado do evento
+- Admin pode atualizar qualquer resultado
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body** (campos opcionais)
+
+```json
+{
+  "tempoLiquido": "01:44:30",
+  "posicaoGeral": 118,
+  "posicaoCategoria": 14,
+  "ritmoMedio": "05:00",
+  "velocidadeMedia": 12.0,
+  "linkCertificado": "https://exemplo.com/certificado/novo",
+  "validado": true
+}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "id": 1,
+  "usuarioId": 5,
+  "eventoId": 1,
+  "tempoLiquido": "01:44:30",
+  "tempoBruto": "01:46:15",
+  "posicaoGeral": 118,
+  "posicaoCategoria": 14,
+  "categoriaCorreida": "M30-34",
+  "ritmoMedio": "05:00",
+  "velocidadeMedia": 12.0,
+  "distanciaPercorrida": 21.1,
+  "linkCertificado": "https://exemplo.com/certificado/novo",
+  "validado": true,
+  "fonteDados": "manual",
+  "chipId": "ABC12345",
+  "splits": {
+    "5k": "00:25:30",
+    "10k": "00:51:15",
+    "15k": "01:18:45",
+    "20k": "01:42:00"
+  }
+}
+```
+
+**Códigos de Erro**:
+
+- 403 Forbidden: Sem permissão para atualizar este resultado
+- 404 Not Found: Resultado não encontrado
+
+### Validar Múltiplos Resultados
+
+```http
+POST /api/v1/resultados-corrida/validar-resultados
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ORGANIZADOR (1)
+- Deve ser o organizador do evento
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body**
+
+```json
+{
+  "eventoId": 1,
+  "resultadosIds": [1, 2, 3, 4, 5]
+}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "message": "5 resultados validados com sucesso"
+}
+```
+
+**Códigos de Erro**:
+
+- 403 Forbidden: Sem permissão para validar resultados deste evento
+
+### Remover Resultado
+
+```http
+DELETE /api/v1/resultados-corrida/:id
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: USUARIO (0)
+- Usuário só pode remover seu próprio resultado
+- Organizador do evento pode remover qualquer resultado do evento
+- Admin pode remover qualquer resultado
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "message": "Resultado removido com sucesso"
+}
+```
+
+**Códigos de Erro**:
+
+- 403 Forbidden: Sem permissão para remover este resultado
+- 404 Not Found: Resultado não encontrado
+
+### Remover Todos os Resultados de um Evento (Admin)
+
+```http
+DELETE /api/v1/resultados-corrida/evento/:eventoId/bulk
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ADMIN (2)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "message": "15 resultados removidos com sucesso"
+}
+```
+
+## Categorias
+
+### Criar Categoria
+
+```http
+POST /api/v1/categorias
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ADMIN (2)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body**
+
+```json
+{
+  "nome": "42km",
+  "descricao": "Maratona completa",
+  "distancia": 42.195,
+  "iconeUrl": "https://exemplo.com/icones/maratona.png"
+}
+```
+
+**Resposta (201 Created)**
+
+```json
+{
+  "id": 1,
+  "nome": "42km",
+  "descricao": "Maratona completa",
+  "distancia": 42.195,
+  "iconeUrl": "https://exemplo.com/icones/maratona.png"
+}
+```
+
+### Listar Categorias
+
+```http
+GET /api/v1/categorias
+```
+
+**Permissões**: Público (não requer autenticação)
+
+**Query Parameters**
+
+```
+nome?: string (busca parcial)
+page?: number (default: 1)
+limit?: number (default: 10)
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "nome": "42km",
+      "descricao": "Maratona completa",
+      "distancia": 42.195,
+      "iconeUrl": "https://exemplo.com/icones/maratona.png"
+    },
+    {
+      "id": 2,
+      "nome": "21km",
+      "descricao": "Meia-maratona",
+      "distancia": 21.0975,
+      "iconeUrl": "https://exemplo.com/icones/meia-maratona.png"
+    }
+  ],
+  "meta": {
+    "total": 5,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1
+  }
+}
+```
+
+### Buscar Categoria por ID
+
+```http
+GET /api/v1/categorias/:id
+```
+
+**Permissões**: Público (não requer autenticação)
+
+**Resposta (200 OK)**
+
+```json
+{
+  "id": 1,
+  "nome": "42km",
+  "descricao": "Maratona completa",
+  "distancia": 42.195,
+  "iconeUrl": "https://exemplo.com/icones/maratona.png"
+}
+```
+
+### Atualizar Categoria
+
+```http
+PATCH /api/v1/categorias/:id
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ADMIN (2)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body** (campos opcionais)
+
+```json
+{
+  "nome": "42.2km",
+  "descricao": "Maratona oficial - distância olímpica",
+  "iconeUrl": "https://exemplo.com/icones/maratona-novo.png"
+}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "id": 1,
+  "nome": "42.2km",
+  "descricao": "Maratona oficial - distância olímpica",
+  "distancia": 42.195,
+  "iconeUrl": "https://exemplo.com/icones/maratona-novo.png"
+}
+```
+
+### Remover Categoria
+
+```http
+DELETE /api/v1/categorias/:id
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ADMIN (2)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "message": "Categoria com ID 1 foi removida com sucesso"
+}
+```
+
+## Categorias-Eventos
+
+### Criar Múltiplas Relações Evento-Categoria
+
+```http
+POST /api/v1/categorias-eventos
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ADMIN (2)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body**
+
+```json
+{
+  "items": [
+    {
+      "eventoId": 1,
+      "categoriaId": 1
+    },
+    {
+      "eventoId": 1,
+      "categoriaId": 2
+    },
+    {
+      "eventoId": 2,
+      "categoriaId": 1
+    }
+  ]
+}
+```
+
+**Resposta (201 Created)**
+
+```json
+{
+  "message": "3 relações evento-categoria criadas com sucesso"
+}
+```
+
+### Adicionar Categorias a um Evento
+
+```http
+POST /api/v1/categorias-eventos/eventos/:eventoId/categorias
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ORGANIZADOR (1)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body**
+
+```json
+{
+  "categoriaIds": [1, 2, 3]
+}
+```
+
+**Resposta (201 Created)**
+
+```json
+{
+  "message": "3 categorias adicionadas ao evento Maratona de São Paulo",
+  "eventoId": 1,
+  "categoriasAdicionadas": 3
+}
+```
+
+### Adicionar Eventos a uma Categoria
+
+```http
+POST /api/v1/categorias-eventos/categorias/:categoriaId/eventos
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ADMIN (2)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Body**
+
+```json
+{
+  "eventoIds": [1, 2, 3]
+}
+```
+
+**Resposta (201 Created)**
+
+```json
+{
+  "message": "3 eventos adicionados à categoria 42km",
+  "categoriaId": 1,
+  "eventosAdicionados": 3
+}
+```
+
+### Listar Relações Evento-Categoria
+
+```http
+GET /api/v1/categorias-eventos
+```
+
+**Permissões**: Público (não requer autenticação)
+
+**Query Parameters**
+
+```
+eventoId?: number
+categoriaId?: number
+page?: number (default: 1)
+limit?: number (default: 10)
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "data": [
+    {
+      "eventoId": 1,
+      "categoriaId": 1,
+      "evento": {
+        "id": 1,
+        "nome": "Maratona de São Paulo",
+        "dataInicio": "2024-05-01T07:00:00Z",
+        "modalidade": "Corrida",
+        "capaUrl": "https://exemplo.com/capa-evento.jpg",
+        "status": "Agendado"
+      },
+      "categoria": {
+        "id": 1,
+        "nome": "42km",
+        "descricao": "Maratona completa",
+        "distancia": 42.195,
+        "iconeUrl": "https://exemplo.com/icones/maratona.png"
+      }
+    }
+    // ... mais relações
+  ],
+  "meta": {
+    "total": 10,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1
+  }
+}
+```
+
+### Listar Categorias de um Evento
+
+```http
+GET /api/v1/categorias-eventos/eventos/:eventoId/categorias
+```
+
+**Permissões**: Público (não requer autenticação)
+
+**Resposta (200 OK)**
+
+```json
+[
+  {
+    "id": 1,
+    "nome": "42km",
+    "descricao": "Maratona completa",
+    "distancia": 42.195,
+    "iconeUrl": "https://exemplo.com/icones/maratona.png"
+  },
+  {
+    "id": 2,
+    "nome": "21km",
+    "descricao": "Maratona de revezamento",
+    "distancia": 21.0975,
+    "iconeUrl": "https://exemplo.com/icones/maratona-revezamento.png"
+  }
+]
+```
+
+### Listar Eventos de uma Categoria
+
+```http
+GET /api/v1/categorias-eventos/categorias/:categoriaId/eventos
+```
+
+**Permissões**: Público (não requer autenticação)
+
+**Resposta (200 OK)**
+
+```json
+[
+  {
+    "id": 1,
+    "nome": "Maratona de São Paulo",
+    "dataInicio": "2024-05-01T07:00:00Z",
+    "modalidade": "Corrida",
+    "capaUrl": "https://exemplo.com/capa-evento.jpg",
+    "status": "Agendado"
+  },
+  {
+    "id": 2,
+    "nome": "Meia Maratona do Rio",
+    "dataInicio": "2024-06-15T07:00:00Z",
+    "modalidade": "Corrida",
+    "capaUrl": "https://exemplo.com/capa-evento-rio.jpg",
+    "status": "Agendado"
+  }
+]
+```
+
+### Remover uma Categoria de um Evento
+
+```http
+DELETE /api/v1/categorias-eventos/eventos/:eventoId/categorias/:categoriaId
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ORGANIZADOR (1)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "message": "Categoria 42km removida do evento Maratona de São Paulo",
+  "eventoId": 1,
+  "categoriaId": 1
+}
+```
+
+### Remover Todas as Categorias de um Evento
+
+```http
+DELETE /api/v1/categorias-eventos/eventos/:eventoId/categorias
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ORGANIZADOR (1)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "message": "3 categorias removidas do evento Maratona de São Paulo",
+  "eventoId": 1,
+  "categoriasRemovidas": 3
+}
+```
+
+### Remover Todos os Eventos de uma Categoria
+
+```http
+DELETE /api/v1/categorias-eventos/categorias/:categoriaId/eventos
+```
+
+**Permissões**:
+
+- Requer JWT Token
+- Nível mínimo: ADMIN (2)
+
+**Headers**
+
+```
+Authorization: Bearer {token}
+```
+
+**Resposta (200 OK)**
+
+```json
+{
+  "message": "2 eventos removidos da categoria 42km",
+  "categoriaId": 1,
+  "eventosRemovidos": 2
+}
+```
+
+**Códigos de Erro**:
+
+- 400 Bad Request: Dados inválidos ou relação inexistente
 - 401 Unauthorized: Token ausente ou inválido
-- 403 Forbidden: Tentativa de operação não autorizada
-- 404 Not Found: Inscrição não encontrada
-- 409 Conflict: Usuário já inscrito no evento
+- 403 Forbidden: Não tem permissão para acessar esse recurso
+- 404 Not Found: Categoria ou evento não encontrado
+- 500 Internal Server Error: Erro interno do servidor

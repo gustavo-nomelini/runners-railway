@@ -228,278 +228,528 @@ model Usuario {
   }
   ```
 
-## Autenticação e Autorização
+## Resultados de Corridas
 
-A API utiliza autenticação baseada em JWT (JSON Web Tokens):
+O módulo de Resultados de Corridas permite aos usuários registrar e gerenciar seus resultados em eventos esportivos, com validação pelos organizadores.
 
-1. O usuário faz login com email e senha
-2. A API valida as credenciais e emite um token JWT
-3. O cliente deve incluir o token em requisições subsequentes no cabeçalho Authorization:
-   ```
-   Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-   ```
-4. Os Guards verificam a validade do token antes de permitir acesso a rotas protegidas
-
-### Proteção de Rotas
-
-Rotas protegidas utilizam o `JwtAuthGuard` para verificar a autenticação:
+### Entidade ResultadoCorrida
 
 ```typescript
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-@Patch(':id')
-update(@Param('id') id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {
-  return this.usuarioService.update(+id, updateUsuarioDto);
+// Modelo Prisma
+model ResultadoCorrida {
+  id                 Int      @id @default(autoincrement()) @map("resultado_id")
+  usuarioId          Int      @map("usuario_id")
+  eventoId           Int      @map("evento_id")
+  posicaoGeral       Int?     @map("posicao_geral")
+  posicaoCategoria   Int?     @map("posicao_categoria")
+  tempoLiquido       String   @map("tempo_liquido") // Formato HH:MM:SS
+  tempoBruto         String?  @map("tempo_bruto")   // Formato HH:MM:SS
+  categoriaCorreida  String?  @map("categoria_corrida") @db.VarChar(100)
+  ritmoMedio         String?  @map("ritmo_medio")   // Formato MM:SS/km
+  velocidadeMedia    Decimal? @map("velocidade_media") @db.Decimal(5, 2)
+  distanciaPercorrida Decimal? @map("distancia_percorrida") @db.Decimal(10, 2)
+  linkCertificado    String?  @map("link_certificado") @db.VarChar(512)
+  validado           Boolean  @default(false)
+  fonteDados         String   @default("manual") @map("fonte_dados") @db.VarChar(50)
+  chipId             String?  @map("chip_id") @db.VarChar(100)
+  splits             Json?    @db.JsonB
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  evento  Evento  @relation(fields: [eventoId], references: [id], onDelete: Cascade)
 }
 ```
 
-## Validação de Dados
+### Endpoints de Resultados de Corridas
 
-A API implementa validação de dados usando:
+#### Registrar um resultado de corrida
 
-- **class-validator**: Para validar propriedades dos DTOs
-- **class-transformer**: Para transformação de tipos
-- **ValidationPipe**: Para aplicar validações globalmente
-
-Exemplo de DTO com validação:
-
-```typescript
-export class CreateUsuarioDto {
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  nome: string;
-
-  @ApiProperty()
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
-
-  @ApiProperty()
-  @IsString()
-  @MinLength(8)
-  senha: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  fotoPerfilUrl?: string;
-
-  // Outras propriedades...
-}
-```
-
-## Segurança
-
-### Hash de Senhas
-
-Todas as senhas são processadas com bcrypt antes de serem armazenadas no banco de dados:
-
-```typescript
-// Durante a criação do usuário
-const hashedPassword = await bcrypt.hash(createUsuarioDto.senha, 10);
-
-// Durante a autenticação
-const isPasswordValid = await bcrypt.compare(password, user.senhaHash);
-```
-
-### Segurança de Dados
-
-- Senhas nunca são retornadas nas respostas da API
-- Validação para prevenir injeção de SQL via Prisma
-- Transformação de dados para remoção de campos sensíveis
-
-## Documentação Swagger
-
-A API inclui documentação interativa Swagger acessível em:
-
-```
-http://localhost:3001/api
-```
-
-## Próximos Passos
-
-Os seguintes recursos estão planejados para implementação futura:
-
-1. Gerenciamento de eventos esportivos
-2. Inscrições de usuários em eventos
-3. Comentários e fotos de eventos
-4. Resultados de corridas
-5. Sistema de medalhas
-6. Comentários de perfil e sistema social
-7. Notificações e estatísticas de usuários
-
-## Como Testar a API
-
-### Requisitos
-
-- Node.js v14 ou superior
-- PostgreSQL
-- npm ou yarn
-
-### Instalação e Execução
-
-```bash
-# Instalar dependências
-npm install
-
-# Configurar variáveis de ambiente (.env)
-DATABASE_URL="postgresql://usuario:senha@localhost:5432/nome_do_banco"
-JWT_SECRET="sua_chave_secreta_para_jwt"
-
-# Executar migrações do Prisma
-npx prisma migrate dev
-
-# Iniciar servidor de desenvolvimento
-npm run start:dev
-```
-
-### Testando com Insomnia/Postman
-
-Para testar a API, importe a coleção de endpoints em um cliente REST como Insomnia ou Postman:
-
-1. Crie um novo usuário com POST `/api/v1/usuarios`
-2. Faça login com POST `/api/v1/auth/login`
-3. Use o token JWT retornado no header `Authorization: Bearer {token}` para acessar endpoints protegidos
-
-## Sistema de Logging Aprimorado
-
-O sistema de logging foi aprimorado para fornecer melhor visibilidade e rastreamento das operações da API:
-
-### Características do Logger Personalizado
-
-- **Timestamps Coloridos**: Cada log começa com um timestamp em roxo em uma nova linha
-- **Níveis de Log Coloridos**:
-  - `[INFO]` - Verde para operações normais
-  - `[ERROR]` - Vermelho em negrito para erros
-  - `[WARN]` - Amarelo para avisos
-  - `[DEBUG]` - Azul para informações de debug
-  - `[VERBOSE]` - Magenta para logs detalhados
-
-### Middleware de Logging
-
-O middleware de logging registra informações detalhadas sobre cada requisição HTTP:
-
-```typescript
-// Exemplo de saída do log de requisição
-[2024-03-14T10:30:45.123Z] // Timestamp em roxo
-GET /api/v1/usuarios/1 200 532b - 45ms - Mozilla/5.0... 192.168.1.1
-```
-
-- Método HTTP colorido (GET: azul, POST: verde, etc.)
-- Path da requisição em negrito
-- Status code colorido baseado na resposta
-- Tamanho da resposta em bytes
-- Tempo de resposta colorido baseado na performance
-- User Agent e IP do cliente
-
-### Tratamento de Exceções
-
-O filtro de exceções global foi aprimorado para fornecer logs mais detalhados:
-
-```typescript
-// Exemplo de saída de log de erro
-[2024-03-14T10:31:00.456Z] // Timestamp em roxo
-[ERROR] [HttpException] POST /api/v1/auth/login - Status: 401 - Credenciais inválidas
-```
-
-## Autenticação e Autorização
-
-### Sistema de Autenticação JWT
-
-O sistema de autenticação foi aprimorado com as seguintes características:
-
-#### Validação de Usuário
-
-```typescript
-interface UserResponse {
-  id: number;
-  nome: string;
-  email: string;
-  nivelPermissao: number;
-  fotoPerfilUrl?: string;
-  ativo: boolean;
-}
-
-interface LoginResponse {
-  access_token: string;
-  user: {
-    id: number;
-    nome: string;
-    email: string;
-    nivelPermissao: number;
-    fotoPerfilUrl?: string;
-  };
-}
-```
-
-#### Estratégia JWT
-
-- Validação automática de tokens
-- Verificação de usuário ativo
-- Atualização automática de última atividade
-- Logging detalhado de tentativas de autenticação
-
-```typescript
-// Exemplo de configuração JWT
-{
-  secret: process.env.JWT_SECRET,
-  signOptions: {
-    expiresIn: process.env.JWT_EXPIRES_IN || '1d'
+- **Endpoint**: `POST /api/v1/resultados-corrida`
+- **Descrição**: Registra um novo resultado de corrida para o usuário autenticado
+- **Autenticação**: JWT Bearer Token necessário
+- **Body**:
+  ```json
+  {
+    "eventoId": 1,
+    "tempoLiquido": "01:45:30",
+    "tempoBruto": "01:46:15",
+    "posicaoGeral": 120,
+    "posicaoCategoria": 15,
+    "categoriaCorreida": "M30-34",
+    "ritmoMedio": "05:05",
+    "velocidadeMedia": 11.8,
+    "distanciaPercorrida": 21.1,
+    "linkCertificado": "https://exemplo.com/certificado/123",
+    "chipId": "ABC12345",
+    "splits": {
+      "5k": "00:25:30",
+      "10k": "00:51:15",
+      "15k": "01:18:45",
+      "20k": "01:42:00"
+    }
   }
-}
-```
-
-### Controle de Acesso Baseado em Níveis
-
-O sistema implementa controle de acesso baseado em níveis de permissão:
-
-```typescript
-@Roles(NivelPermissao.ADMIN)
-@Get('usuarios')
-async listarUsuarios() {
-  // Apenas usuários com nível ADMIN podem acessar
-}
-```
-
-### Logs de Segurança
-
-O sistema mantém logs detalhados de eventos de segurança:
-
-- Tentativas de login (sucesso/falha)
-- Validação de tokens JWT
-- Alterações de permissões
-- Acessos não autorizados
-
-```typescript
-// Exemplo de log de segurança
-[2024-03-14T10:32:15.789Z] [WARN] [AuthService] Tentativa de login falhou para o email: usuario@example.com
-[2024-03-14T10:32:16.123Z] [INFO] [AuthService] Usuário autenticado com sucesso: usuario@example.com
-```
-
-## Configuração do Logger
-
-Para utilizar o logger personalizado em um serviço:
-
-```typescript
-@Injectable()
-export class SeuServico {
-  constructor(private readonly logger: CustomLoggerService) {
-    this.logger.setContext('SeuServico');
+  ```
+- **Resposta (201 Created)**:
+  ```json
+  {
+    "id": 1,
+    "usuarioId": 5,
+    "eventoId": 1,
+    "tempoLiquido": "01:45:30",
+    "tempoBruto": "01:46:15",
+    "posicaoGeral": 120,
+    "posicaoCategoria": 15,
+    "categoriaCorreida": "M30-34",
+    "ritmoMedio": "05:05",
+    "velocidadeMedia": 11.8,
+    "distanciaPercorrida": 21.1,
+    "linkCertificado": "https://exemplo.com/certificado/123",
+    "validado": false,
+    "fonteDados": "manual",
+    "chipId": "ABC12345",
+    "splits": {
+      "5k": "00:25:30",
+      "10k": "00:51:15",
+      "15k": "01:18:45",
+      "20k": "01:42:00"
+    }
   }
+  ```
 
-  async seuMetodo() {
-    this.logger.log('Operação iniciada');
-    // ... lógica do método
-    this.logger.debug('Detalhes da operação');
+#### Listar resultados de corridas
+
+- **Endpoint**: `GET /api/v1/resultados-corrida`
+- **Descrição**: Lista resultados de corridas com filtros opcionais
+- **Parâmetros Query**:
+  - `eventoId` (opcional): Filtrar por ID do evento
+  - `usuarioId` (opcional): Filtrar por ID do usuário
+  - `validado` (opcional): Filtrar por status de validação (true/false)
+- **Resposta (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "usuarioId": 5,
+      "eventoId": 1,
+      "tempoLiquido": "01:45:30",
+      "tempoBruto": "01:46:15",
+      "posicaoGeral": 120,
+      "posicaoCategoria": 15,
+      "usuario": {
+        "id": 5,
+        "nome": "João Silva",
+        "cidade": "São Paulo",
+        "estado": "SP",
+        "fotoPerfilUrl": "https://exemplo.com/foto.jpg"
+      },
+      "evento": {
+        "id": 1,
+        "nome": "Meia Maratona de São Paulo",
+        "dataInicio": "2024-06-15T06:00:00.000Z",
+        "localizacao": "São Paulo, SP"
+      }
+    }
+    // mais resultados
+  ]
+  ```
+
+#### Obter resultados de um evento específico
+
+- **Endpoint**: `GET /api/v1/resultados-corrida/evento/:eventoId`
+- **Descrição**: Retorna todos os resultados de um evento específico
+- **Resposta (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "usuarioId": 5,
+      "eventoId": 1,
+      "tempoLiquido": "01:45:30",
+      "posicaoGeral": 120,
+      "usuario": {
+        "id": 5,
+        "nome": "João Silva",
+        "cidade": "São Paulo",
+        "estado": "SP"
+      }
+    }
+    // mais resultados
+  ]
+  ```
+
+#### Obter meus resultados
+
+- **Endpoint**: `GET /api/v1/resultados-corrida/usuario/meus-resultados`
+- **Descrição**: Retorna todos os resultados do usuário autenticado
+- **Autenticação**: JWT Bearer Token necessário
+- **Resposta (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "eventoId": 1,
+      "tempoLiquido": "01:45:30",
+      "posicaoGeral": 120,
+      "evento": {
+        "id": 1,
+        "nome": "Meia Maratona de São Paulo",
+        "dataInicio": "2024-06-15T06:00:00.000Z",
+        "localizacao": "São Paulo, SP",
+        "modalidade": "Corrida de Rua",
+        "capaUrl": "https://exemplo.com/capa.jpg"
+      }
+    }
+    // mais resultados
+  ]
+  ```
+
+#### Validar resultados (para organizadores)
+
+- **Endpoint**: `POST /api/v1/resultados-corrida/validar-resultados`
+- **Descrição**: Permite que organizadores validem múltiplos resultados de um evento
+- **Autenticação**: JWT Bearer Token necessário (deve ser organizador do evento)
+- **Body**:
+  ```json
+  {
+    "eventoId": 1,
+    "resultadosIds": [1, 2, 3, 4, 5]
   }
+  ```
+- **Resposta (200 OK)**:
+  ```json
+  {
+    "message": "5 resultados validados com sucesso"
+  }
+  ```
+
+#### Atualizar um resultado
+
+- **Endpoint**: `PATCH /api/v1/resultados-corrida/:id`
+- **Descrição**: Atualiza um resultado de corrida existente
+- **Autenticação**: JWT Bearer Token necessário (deve ser proprietário do resultado, organizador do evento ou admin)
+- **Parâmetros Path**:
+  - `id`: ID do resultado a ser atualizado
+- **Body** (campos opcionais):
+  ```json
+  {
+    "tempoLiquido": "01:44:30",
+    "posicaoGeral": 118,
+    "posicaoCategoria": 14
+  }
+  ```
+- **Resposta (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "usuarioId": 5,
+    "eventoId": 1,
+    "tempoLiquido": "01:44:30",
+    "tempoBruto": "01:46:15",
+    "posicaoGeral": 118,
+    "posicaoCategoria": 14
+    // outras propriedades
+  }
+  ```
+
+#### Remover um resultado
+
+- **Endpoint**: `DELETE /api/v1/resultados-corrida/:id`
+- **Descrição**: Remove um resultado de corrida
+- **Autenticação**: JWT Bearer Token necessário (deve ser proprietário do resultado, organizador do evento ou admin)
+- **Parâmetros Path**:
+  - `id`: ID do resultado a ser removido
+- **Resposta (200 OK)**:
+  ```json
+  {
+    "message": "Resultado removido com sucesso"
+  }
+  ```
+
+## Módulo de Categorias
+
+O módulo de Categorias gerencia as categorias disponíveis para eventos (tipos de corrida, distâncias, etc).
+
+#### Entidade Categoria
+
+```typescript
+// Modelo Prisma
+model Categoria {
+  id          Int      @id @default(autoincrement()) @map("categoria_id")
+  nome        String   @db.VarChar(100)
+  descricao   String?  @db.Text
+  distancia   Decimal? @db.Decimal(10, 2)
+  iconeUrl    String?  @map("icone_url") @db.VarChar(512)
+
+  eventos     EventoCategoria[]
+
+  @@map("categorias")
 }
 ```
 
-### Níveis de Log Disponíveis
+### Módulo de Categorias-Eventos
 
-- **log()**: Informações gerais
-- **error()**: Erros e exceções
-- **warn()**: Avisos e situações potencialmente problemáticas
-- **debug()**: Informações úteis para debugging
-- **verbose()**: Logs detalhados para rastreamento
+O módulo de Categorias-Eventos gerencia as relações entre eventos e categorias, permitindo associar múltiplas categorias a um evento e múltiplos eventos a uma categoria.
+
+#### Entidade EventoCategoria
+
+```typescript
+// Modelo Prisma
+model EventoCategoria {
+  eventoId    Int @map("evento_id")
+  categoriaId Int @map("categoria_id")
+
+  evento    Evento    @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  categoria Categoria @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+
+  @@id([eventoId, categoriaId])
+  @@map("evento_categorias")
+}
+```
+
+## Endpoints de Categorias-Eventos
+
+### Criar Múltiplas Relações Evento-Categoria
+
+- **Endpoint**: `POST /api/v1/categorias-eventos`
+- **Descrição**: Cria múltiplas relações entre eventos e categorias
+- **Autenticação**: JWT Bearer Token necessário (nível: ADMIN)
+- **Body**:
+  ```json
+  {
+    "items": [
+      {
+        "eventoId": 1,
+        "categoriaId": 1
+      },
+      {
+        "eventoId": 1,
+        "categoriaId": 2
+      },
+      {
+        "eventoId": 2,
+        "categoriaId": 1
+      }
+    ]
+  }
+  ```
+- **Resposta (201 Created)**:
+  ```json
+  {
+    "message": "3 relações evento-categoria criadas com sucesso"
+  }
+  ```
+
+### Adicionar Categorias a um Evento
+
+- **Endpoint**: `POST /api/v1/categorias-eventos/eventos/:eventoId/categorias`
+- **Descrição**: Adiciona múltiplas categorias a um evento específico
+- **Autenticação**: JWT Bearer Token necessário (nível: ORGANIZADOR ou superior)
+- **Parâmetros Path**:
+  - `eventoId`: ID do evento ao qual adicionar categorias
+- **Body**:
+  ```json
+  {
+    "categoriaIds": [1, 2, 3]
+  }
+  ```
+- **Resposta (201 Created)**:
+  ```json
+  {
+    "message": "3 categorias adicionadas ao evento Maratona de São Paulo",
+    "eventoId": 1,
+    "categoriasAdicionadas": 3
+  }
+  ```
+
+### Adicionar Eventos a uma Categoria
+
+- **Endpoint**: `POST /api/v1/categorias-eventos/categorias/:categoriaId/eventos`
+- **Descrição**: Adiciona múltiplos eventos a uma categoria específica
+- **Autenticação**: JWT Bearer Token necessário (nível: ADMIN)
+- **Parâmetros Path**:
+  - `categoriaId`: ID da categoria à qual adicionar eventos
+- **Body**:
+  ```json
+  {
+    "eventoIds": [1, 2, 3]
+  }
+  ```
+- **Resposta (201 Created)**:
+  ```json
+  {
+    "message": "3 eventos adicionados à categoria 42km",
+    "categoriaId": 1,
+    "eventosAdicionados": 3
+  }
+  ```
+
+### Listar Relações Evento-Categoria
+
+- **Endpoint**: `GET /api/v1/categorias-eventos`
+- **Descrição**: Lista todas as relações entre eventos e categorias, com suporte a filtros
+- **Permissões**: Público (não requer autenticação)
+- **Parâmetros Query**:
+  - `eventoId` (opcional): Filtrar por ID do evento
+  - `categoriaId` (opcional): Filtrar por ID da categoria
+  - `page` (opcional, default: 1): Página atual
+  - `limit` (opcional, default: 10): Itens por página
+- **Resposta (200 OK)**:
+  ```json
+  {
+    "data": [
+      {
+        "eventoId": 1,
+        "categoriaId": 1,
+        "evento": {
+          "id": 1,
+          "nome": "Maratona de São Paulo",
+          "dataInicio": "2024-05-01T07:00:00Z",
+          "modalidade": "Corrida",
+          "capaUrl": "https://exemplo.com/capa-evento.jpg",
+          "status": "Agendado"
+        },
+        "categoria": {
+          "id": 1,
+          "nome": "42km",
+          "descricao": "Maratona completa",
+          "distancia": 42.195,
+          "iconeUrl": "https://exemplo.com/icones/maratona.png"
+        }
+      }
+      // ... mais relações
+    ],
+    "meta": {
+      "total": 10,
+      "page": 1,
+      "limit": 10,
+      "totalPages": 1
+    }
+  }
+  ```
+
+### Listar Categorias de um Evento
+
+- **Endpoint**: `GET /api/v1/categorias-eventos/eventos/:eventoId/categorias`
+- **Descrição**: Lista todas as categorias associadas a um evento específico
+- **Permissões**: Público (não requer autenticação)
+- **Parâmetros Path**:
+  - `eventoId`: ID do evento
+- **Resposta (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "nome": "42km",
+      "descricao": "Maratona completa",
+      "distancia": 42.195,
+      "iconeUrl": "https://exemplo.com/icones/maratona.png"
+    },
+    {
+      "id": 2,
+      "nome": "21km",
+      "descricao": "Meia-maratona",
+      "distancia": 21.0975,
+      "iconeUrl": "https://exemplo.com/icones/meia-maratona.png"
+    }
+  ]
+  ```
+
+### Listar Eventos de uma Categoria
+
+- **Endpoint**: `GET /api/v1/categorias-eventos/categorias/:categoriaId/eventos`
+- **Descrição**: Lista todos os eventos associados a uma categoria específica
+- **Permissões**: Público (não requer autenticação)
+- **Parâmetros Path**:
+  - `categoriaId`: ID da categoria
+- **Resposta (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "nome": "Maratona de São Paulo",
+      "dataInicio": "2024-05-01T07:00:00Z",
+      "modalidade": "Corrida",
+      "capaUrl": "https://exemplo.com/capa-evento.jpg",
+      "status": "Agendado"
+    },
+    {
+      "id": 2,
+      "nome": "Meia Maratona do Rio",
+      "dataInicio": "2024-06-15T07:00:00Z",
+      "modalidade": "Corrida",
+      "capaUrl": "https://exemplo.com/capa-evento-rio.jpg",
+      "status": "Agendado"
+    }
+  ]
+  ```
+
+### Remover uma Categoria de um Evento
+
+- **Endpoint**: `DELETE /api/v1/categorias-eventos/eventos/:eventoId/categorias/:categoriaId`
+- **Descrição**: Remove a associação entre uma categoria específica e um evento
+- **Autenticação**: JWT Bearer Token necessário (nível: ORGANIZADOR ou superior)
+- **Parâmetros Path**:
+  - `eventoId`: ID do evento
+  - `categoriaId`: ID da categoria a ser removida do evento
+- **Resposta (200 OK)**:
+  ```json
+  {
+    "message": "Categoria 42km removida do evento Maratona de São Paulo",
+    "eventoId": 1,
+    "categoriaId": 1
+  }
+  ```
+
+### Remover Todas as Categorias de um Evento
+
+- **Endpoint**: `DELETE /api/v1/categorias-eventos/eventos/:eventoId/categorias`
+- **Descrição**: Remove todas as categorias associadas a um evento específico
+- **Autenticação**: JWT Bearer Token necessário (nível: ORGANIZADOR ou superior)
+- **Parâmetros Path**:
+  - `eventoId`: ID do evento
+- **Resposta (200 OK)**:
+  ```json
+  {
+    "message": "3 categorias removidas do evento Maratona de São Paulo",
+    "eventoId": 1,
+    "categoriasRemovidas": 3
+  }
+  ```
+
+### Remover Todos os Eventos de uma Categoria
+
+- **Endpoint**: `DELETE /api/v1/categorias-eventos/categorias/:categoriaId/eventos`
+- **Descrição**: Remove todos os eventos associados a uma categoria específica
+- **Autenticação**: JWT Bearer Token necessário (nível: ADMIN)
+- **Parâmetros Path**:
+  - `categoriaId`: ID da categoria
+- **Resposta (200 OK)**:
+  ```json
+  {
+    "message": "2 eventos removidos da categoria 42km",
+    "categoriaId": 1,
+    "eventosRemovidos": 2
+  }
+  ```
+
+## Relacionamentos entre Módulos
+
+O sistema implementa várias relações entre os módulos para proporcionar uma experiência integrada:
+
+1. **Evento-Categoria**: Relacionamento muitos-para-muitos que associa categorias (como "42km", "21km") a eventos específicos
+2. **Usuário-Evento**: Para inscrições e organizações de eventos
+3. **Evento-ResultadoCorrida**: Para registrar resultados de corridas de usuários em eventos específicos
+
+Essas relações permitem implementar funcionalidades como:
+
+- Mostrar todas as corridas de maratona (42km) disponíveis
+- Filtrar eventos por categorias específicas
+- Permitir que organizadores gerenciem as categorias disponíveis em seus eventos
+- Oferecer aos usuários a capacidade de encontrar eventos baseados em suas distâncias preferidas
+
+## Códigos de Erro
+
+Todas as rotas podem retornar os seguintes erros:
+
+- **400 Bad Request**: Dados inválidos ou relação inexistente
+
+- **verbose()**: Logs detalhados para rastreamento- **debug()**: Informações úteis para debugging- **warn()**: Avisos e situações potencialmente problemáticas- **error()**: Erros e exceções- **log()**: Informações gerais### Níveis de Log Disponíveis`}  }    this.logger.debug('Detalhes da operação');    // ... lógica do método    this.logger.log('Operação iniciada');  async seuMetodo() {  }    this.logger.setContext('SeuServico');  constructor(private readonly logger: CustomLoggerService) {export class SeuServico {@Injectable()`typescriptPara utilizar o logger personalizado em um serviço:## Configuração do Logger`[2024-03-14T10:32:16.123Z] [INFO] [AuthService] Usuário autenticado com sucesso: usuario@example.com[2024-03-14T10:32:15.789Z] [WARN] [AuthService] Tentativa de login falhou para o email: usuario@example.com// Exemplo de log de segurança`typescript- Acessos não autorizados- Alterações de permissões- Validação de tokens JWT- Tentativas de login (sucesso/falha)O sistema mantém logs detalhados de eventos de segurança:### Logs de Segurança`}  // Apenas usuários com nível ADMIN podem acessarasync listarUsuarios() {@Get('usuarios')@Roles(NivelPermissao.ADMIN)`typescriptO sistema implementa controle de acesso baseado em níveis de permissão:### Controle de Acesso Baseado em Níveis`}  }    expiresIn: process.env.JWT_EXPIRES_IN || '1d'  signOptions: {  secret: process.env.JWT_SECRET,{// Exemplo de configuração JWT`typescript- Logging detalhado de tentativas de autenticação- Atualização automática de última atividade- Verificação de usuário ativo- Validação automática de tokens#### Estratégia JWT`}  };    fotoPerfilUrl?: string;    nivelPermissao: number;    email: string;    nome: string;    id: number;  user: {  access_token: string;interface LoginResponse {}  ativo: boolean;  fotoPerfilUrl?: string;  nivelPermissao: number;  email: string;  nome: string;  id: number;interface UserResponse {`typescript#### Validação de UsuárioO sistema de autenticação foi aprimorado com as seguintes características:### Sistema de Autenticação JWT## Autenticação e Autorização`[ERROR] [HttpException] POST /api/v1/auth/login - Status: 401 - Credenciais inválidas[2024-03-14T10:31:00.456Z] // Timestamp em roxo// Exemplo de saída de log de erro`typescriptO filtro de exceções global foi aprimorado para fornecer logs mais detalhados:### Tratamento de Exceções- User Agent e IP do cliente- Tempo de resposta colorido baseado na performance- Tamanho da resposta em bytes- Status code colorido baseado na resposta- Path da requisição em negrito- Método HTTP colorido (GET: azul, POST: verde, etc.)`GET /api/v1/usuarios/1 200 532b - 45ms - Mozilla/5.0... 192.168.1.1[2024-03-14T10:30:45.123Z] // Timestamp em roxo// Exemplo de saída do log de requisição`typescriptO middleware de logging registra informações detalhadas sobre cada requisição HTTP:### Middleware de Logging - `[VERBOSE]` - Magenta para logs detalhados - `[DEBUG]` - Azul para informações de debug - `[WARN]` - Amarelo para avisos - `[ERROR]` - Vermelho em negrito para erros - `[INFO]` - Verde para operações normais- **Níveis de Log Coloridos**:- **Timestamps Coloridos**: Cada log começa com um timestamp em roxo em uma nova linha### Características do Logger PersonalizadoO sistema de logging foi aprimorado para fornecer melhor visibilidade e rastreamento das operações da API:## Sistema de Logging Aprimorado3. Use o token JWT retornado no header `Authorization: Bearer {token}` para acessar endpoints protegidos2. Faça login com POST `/api/v1/auth/login`1. Crie um novo usuário com POST `/api/v1/usuarios`Para testar a API, importe a coleção de endpoints em um cliente REST como Insomnia ou Postman:### Testando com Insomnia/Postman`npm run start:dev# Iniciar servidor de desenvolvimentonpx prisma migrate dev# Executar migrações do PrismaJWT_SECRET="sua_chave_secreta_para_jwt"DATABASE_URL="postgresql://usuario:senha@localhost:5432/nome_do_banco"# Configurar variáveis de ambiente (.env)npm install# Instalar dependências`bash### Instalação e Execução- npm ou yarn- PostgreSQL- Node.js v14 ou superior### Requisitos## Como Testar a API7. Notificações e estatísticas de usuários6. Comentários de perfil e sistema social5. Sistema de medalhas4. Resultados de corridas3. Comentários e fotos de eventos2. Inscrições de usuários em eventos1. Gerenciamento de eventos esportivosOs seguintes recursos estão planejados para implementação futura:## Próximos Passos`http://localhost:3001/api`A API inclui documentação interativa Swagger acessível em:## Documentação Swagger- Transformação de dados para remoção de campos sensíveis- Validação para prevenir injeção de SQL via Prisma- Senhas nunca são retornadas nas respostas da API### Segurança de Dados`const isPasswordValid = await bcrypt.compare(password, user.senhaHash);// Durante a autenticaçãoconst hashedPassword = await bcrypt.hash(createUsuarioDto.senha, 10);// Durante a criação do usuário`typescriptTodas as senhas são processadas com bcrypt antes de serem armazenadas no banco de dados:### Hash de Senhas## Segurança`}  // Outras propriedades...  fotoPerfilUrl?: string;  @IsString()  @IsOptional()  @ApiProperty({ required: false })  senha: string;  @MinLength(8)  @IsString()  @ApiProperty()  email: string;  @IsNotEmpty()  @IsEmail()  @ApiProperty()  nome: string;  @IsNotEmpty()  @IsString()  @ApiProperty()export class CreateUsuarioDto {`typescriptExemplo de DTO com validação:- **ValidationPipe**: Para aplicar validações globalmente- **class-transformer**: Para transformação de tipos- **class-validator**: Para validar propriedades dos DTOsA API implementa validação de dados usando:## Validação de Dados`}  return this.usuarioService.update(+id, updateUsuarioDto);update(@Param('id') id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {@Patch(':id')@ApiBearerAuth()@UseGuards(JwtAuthGuard)`typescriptRotas protegidas utilizam o `JwtAuthGuard` para verificar a autenticação:### Proteção de Rotas4. Os Guards verificam a validade do token antes de permitir acesso a rotas protegidas `   Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...   `3. O cliente deve incluir o token em requisições subsequentes no cabeçalho Authorization:2. A API valida as credenciais e emite um token JWT1. O usuário faz login com email e senhaA API utiliza autenticação baseada em JWT (JSON Web Tokens):## Autenticação e Autorização- **500 Internal Server Error**: Erro interno do servidor- **404 Not Found**: Categoria, evento ou relação não encontrada- **403 Forbidden**: Não tem permissão para acessar esse recurso- **401 Unauthorized**: Token ausente ou inválido

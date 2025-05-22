@@ -88,7 +88,7 @@ export class EventoRepository {
   }
 
   async findById(id: number): Promise<EventoDetailResponse | null> {
-    return this.prisma.evento.findUnique({
+    const evento = await this.prisma.evento.findUnique({
       where: { id },
       include: {
         organizador: {
@@ -112,7 +112,19 @@ export class EventoRepository {
           },
         },
       },
-    }) as unknown as EventoDetailResponse;
+    });
+
+    if (!evento) {
+      return null;
+    }
+
+    return {
+      ...evento,
+      totalInscritos: evento._count.inscricoes,
+      totalComentarios: evento._count.comentarios,
+      totalFotos: evento._count.fotos,
+      _count: undefined,
+    } as unknown as EventoDetailResponse;
   }
 
   async update(

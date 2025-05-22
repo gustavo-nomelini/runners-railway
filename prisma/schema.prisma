@@ -33,8 +33,11 @@ model Usuario {
   dataNascimento  DateTime? @map("data_nascimento") @db.Date
   genero          String?   @db.VarChar(30)
   preferencias    Json?     @db.JsonB
+  // cpf           String?   @map("cpf") @db.VarChar(11)
   // Campos específicos do organizador
   nomeEmpresa     String?   @map("nome_empresa")
+  // schema.prisma : text -> db.varChar(14)
+  //cnpj            String?   @map("cnpj") @db.VarChar(14)
   cnpj            String?   @map("cnpj")
   site            String?   @map("site")
 

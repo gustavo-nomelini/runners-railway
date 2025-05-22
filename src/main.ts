@@ -110,6 +110,7 @@ async function bootstrap() {
   // CORS Configuration with more secure settings for production
   const allowedOrigins = isProduction
     ? [
+        'http://localhost:3000',
         'https://cascavel-runners-teste.vercel.app',
         'https://runners-railway-production.up.railway.app',
       ]

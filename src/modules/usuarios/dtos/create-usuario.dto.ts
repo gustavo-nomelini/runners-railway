@@ -33,19 +33,24 @@ export class CreateUsuarioDto {
   @ApiProperty({
     example: 'Senha123!',
     description:
-      'Mínimo 8 caracteres, precisa conter pelo menos uma letra e um número',
+      'Mínimo 8 caracteres, precisa conter pelo menos uma letra minúscula, uma letra maiúscula, um número e um caractere especial',
   })
   @IsString()
   @MinLength(8)
-  @Matches(/^(?=.*[a-zA-Z])(?=.*\d).*$/, {
-    message: 'A senha deve conter pelo menos uma letra e um número',
-  })
+  @Matches(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/,
+    {
+      message:
+        'A senha deve conter pelo menos uma letra minúscula, uma maiúscula, um número e um caractere especial',
+    },
+  )
   senha: string;
 
   @ApiProperty({
     example: '123.456.789-00',
     description: 'CPF do usuário (com ou sem formatação)',
   })
+  @IsOptional() // tornando campo opcional
   @IsString()
   @IsNotEmpty()
   @Transform(({ value }) => value.replace(/[^\d]/g, ''))
@@ -53,7 +58,7 @@ export class CreateUsuarioDto {
     message:
       'CPF deve conter 11 dígitos numéricos, podendo incluir pontos e traço',
   })
-  cpf: string;
+  cpf?: string; // tornando campo opcional para o typescript
 
   @ApiProperty({
     required: false,
@@ -103,23 +108,5 @@ export class CreateUsuarioDto {
   @IsString()
   @MaxLength(50)
   pais?: string;
-
-  @ApiProperty({
-    required: false,
-    example: '1990-01-01',
-    description: 'Data de nascimento do usuário',
-  })
-  @IsOptional()
-  @IsDateString()
-  dataNascimento?: string;
-
-  @ApiProperty({
-    required: false,
-    example: 'Masculino',
-    description: 'Gênero do usuário',
-  })
-  @IsOptional()
-  @IsString()
-  @MaxLength(30)
-  genero?: string;
 }
+

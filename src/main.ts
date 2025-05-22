@@ -1,4 +1,8 @@
-import { BadRequestException, HttpStatus, ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  ValidationPipe,
+} from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import rateLimit from 'express-rate-limit';
@@ -32,30 +36,76 @@ async function bootstrap() {
 
   app.useLogger(logger);
 
-// Aplica o ValidationPipe globalmente com a transformação habilitada
-// e a remoção de propriedades não validadas
+  // Aplica o ValidationPipe globalmente com a transformação habilitada
+  // e a remoção de propriedades não validadas
+  // app.useGlobalPipes(
+  //   new ValidationPipe({
+  //     whitelist: true, // Remove propriedades não validadas/decoradas
+  //     transform: true, // Transforma os dados recebidos para o tipo correto
+  //     forbidNonWhitelisted: true,
+  //     transformOptions: {
+  //       enableImplicitConversion: true,
+  //     },
+  //     exceptionFactory: (errors) => {
+  //       // Factory para customizar como as exceções de validação são formatadas e retornadas
+  //       const formattedErrors = errors.reduce((acc, error) => {
+  //         // Tratamento especial para validação de senhas
+  //         if (error.property === 'senha' || error.property === 'password') {
+  //           const constraints = error.constraints || {};
+
+  //           // Cria uma estrutura detalhada para erros de senha
+  //           acc[error.property] = {
+  //             // Lista de mensagens de erro para todas as restrições violadas
+  //             messages: Object.values(constraints),
+
+  //             // Mapeia os tipos específicos de falhas para melhor análise no frontend
+  //             constraints: Object.keys(constraints).map((key) => {
+  //               // Extract specific requirement failures for better logging
+  //               if (key.includes('matches')) return 'format'; // Falha no formato/padrão regex
+  //               if (key.includes('minLength')) return 'minLength'; // Falha no tamanho mínimo
+  //               if (key.includes('maxLength')) return 'maxLength'; // Falha no tamanho máximo
+  //               if (key.includes('isStrongPassword')) return 'strength'; // Falha na robustez da senha
+  //               return key; // Outros tipos de falhas
+  //             }),
+  //             failed: true, // Indicador explícito de falha na validação
+  //           };
+
+  //           // Registra detalhadamente as falhas de validação da senha no log do sistema
+  //           // Isso facilita a auditoria e monitoramento de tentativas de cadastro
+  //           logger.error(
+  //             `Password validation failed: ${Object.values(constraints).join(', ')}`,
+  //             'ValidationPipe',
+  //           );
+  //         } else {
+  //           // Tratamento padrão para outros campos com formato simplificado
+  //           acc[error.property] = Object.values(error.constraints || {});
+  //         }
+  //         return acc;
+  //       }, {});
+
+  //       // Retorna uma exceção de BadRequest com estrutura padronizada
+  //       // Isso garante uma resposta consistente para o cliente
+  //       return new BadRequestException({
+  //         message: 'Validation failed',
+  //         errors: formattedErrors,
+  //         statusCode: HttpStatus.BAD_REQUEST,
+  //       });
+  //     },
+  //   }),
+  // );
+
+
+  // implementação simplificada do ValidationPipe
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Remove propriedades não validadas/decoradas
-      transform: true, // Transforma os dados recebidos para o tipo correto
+      whitelist: true,
+      transform: true,
       forbidNonWhitelisted: true,
       transformOptions: {
         enableImplicitConversion: true,
       },
-      exceptionFactory: (errors) => {
-        const formattedErrors = errors.reduce((acc, error) => {
-          acc[error.property] = Object.values(error.constraints || {});
-          return acc;
-        }, {});
-        return new BadRequestException({
-          message: 'Validation failed',
-          errors: formattedErrors,
-        });
-      },
     }),
-  );
-
-
+  ); 
 
   // CORS Configuration with more secure settings for production
   const allowedOrigins = isProduction

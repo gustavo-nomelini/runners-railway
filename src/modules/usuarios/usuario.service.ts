@@ -19,7 +19,63 @@ import { UsuarioRepository } from './usuario.repository';
 export class UsuarioService {
   constructor(private readonly usuarioRepository: UsuarioRepository) {}
 
+  /**
+   * Valida a senha de acordo com os requisitos:
+   * - Mínimo 8 caracteres
+   * - Pelo menos uma letra minúscula
+   * - Pelo menos uma letra maiúscula
+   * - Pelo menos um número
+   * - Pelo menos um caractere especial
+   */
+  private validatePassword(password: string): {
+    isValid: boolean;
+    message?: string;
+  } {
+    if (password.length < 8) {
+      return {
+        isValid: false,
+        message: 'A senha deve ter pelo menos 8 caracteres',
+      };
+    }
+
+    if (!/[a-z]/.test(password)) {
+      return {
+        isValid: false,
+        message: 'A senha deve conter pelo menos uma letra minúscula',
+      };
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      return {
+        isValid: false,
+        message: 'A senha deve conter pelo menos uma letra maiúscula',
+      };
+    }
+
+    if (!/[0-9]/.test(password)) {
+      return {
+        isValid: false,
+        message: 'A senha deve conter pelo menos um número',
+      };
+    }
+
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      return {
+        isValid: false,
+        message: 'A senha deve conter pelo menos um caractere especial',
+      };
+    }
+
+    return { isValid: true };
+  }
+
   async create(createUsuarioDto: CreateUsuarioDto) {
+    // Validação de senha
+    const passwordValidation = this.validatePassword(createUsuarioDto.senha);
+    if (!passwordValidation.isValid) {
+      throw new BadRequestException(passwordValidation.message);
+    }
+
     // Verifique se o email já existe
     const existingUser = await this.usuarioRepository.findByEmail(
       createUsuarioDto.email,
@@ -63,6 +119,14 @@ export class UsuarioService {
   }
 
   async createOrganizador(createOrganizadorDto: CreateOrganizadorDto) {
+    // Validação de senha
+    const passwordValidation = this.validatePassword(
+      createOrganizadorDto.senha,
+    );
+    if (!passwordValidation.isValid) {
+      throw new BadRequestException(passwordValidation.message);
+    }
+
     // Verifique se o email já existe
     const existingUser = await this.usuarioRepository.findByEmail(
       createOrganizadorDto.email,
@@ -151,6 +215,12 @@ export class UsuarioService {
 
       // Se estiver atualizando a senha, fazer o hash
       if (senha) {
+        // Validação de senha
+        const passwordValidation = this.validatePassword(senha);
+        if (!passwordValidation.isValid) {
+          throw new BadRequestException(passwordValidation.message);
+        }
+
         let hashedPassword: string;
         try {
           hashedPassword = await bcrypt.hash(senha, 10);

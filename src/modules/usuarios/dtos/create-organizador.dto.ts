@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, MaxLength} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, Matches, MaxLength} from 'class-validator';
 import { CreateUsuarioDto } from './create-usuario.dto';
 import { Transform } from 'class-transformer';
 
@@ -41,7 +41,4 @@ export class CreateOrganizadorDto extends CreateUsuarioDto {
 
 }
 
-function Matches(arg0: RegExp, arg1: { message: string; }): (target: CreateOrganizadorDto, propertyKey: "cnpj") => void {
-  throw new Error('Function not implemented.');
-}
 

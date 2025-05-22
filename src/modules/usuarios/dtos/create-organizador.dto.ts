@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 import { CreateUsuarioDto } from './create-usuario.dto';
 import { Transform } from 'class-transformer';
 
@@ -18,15 +18,20 @@ export class CreateOrganizadorDto extends CreateUsuarioDto {
   //Validará se o formato está correto
   //Armazenará apenas os 14 dígitos numéricos no banco de dados
   @ApiProperty({
-    example: '12345678901234',
-    description: 'CNPJ da empresa ou organização',
+    example: '01.234.567/0001-80',
+    description: 'CNPJ do usuário (com ou sem formatação)',
   })
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  @MaxLength(14)
-  cnpj: string;
+  @Transform(({ value }) => value.replace(/[^\d]/g, ''))
+  @Matches(/^(\d{14}|\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})$/, {
+    message:
+      'CNPJ deve conter 14 dígitos numéricos, podendo incluir pontos, barra e traço',
+  })
+  cnpj?: string;
 
-
+  
   @ApiProperty({
     example: 'https://empresa.com',
     description: 'URL do site da empresa ou organização',
@@ -35,7 +40,6 @@ export class CreateOrganizadorDto extends CreateUsuarioDto {
   @IsString()
   @MaxLength(512)
   site?: string;
-
 }
 
 

@@ -61,6 +61,18 @@ export class CreateUsuarioDto {
   cpf?: string; // tornando campo opcional para o typescript
 
   @ApiProperty({
+    example: '1998-10-13',
+    description: 'Data de nascimento do usuário (formato: YYYY-MM-DD)',
+  })
+  @IsOptional()
+  @IsDateString()
+  @Transform(({ value }) => {
+    const date = new Date(value);
+    return date.toISOString().split('T')[0]; // Retorna apenas a parte da data
+  })
+  dataNascimento?: string;
+
+  @ApiProperty({
     required: false,
     example: 'https://exemplo.com/foto.jpg',
     description: 'URL da foto de perfil do usuário',
@@ -119,4 +131,3 @@ export class CreateUsuarioDto {
   @MaxLength(30)
   genero?: string;
 }
-

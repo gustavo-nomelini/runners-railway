@@ -63,6 +63,7 @@ model Usuario {
   nome            String    @db.VarChar(100)
   email           String    @unique @db.VarChar(255)
   senhaHash       String    @map("senha_hash") @db.VarChar(255)
+  cpf             String?   @db.VarChar(11) // CPF sem formatação - 11 dígitos
   fotoPerfilUrl   String?   @map("foto_perfil_url") @db.VarChar(512)
   biografia       String?   @db.Text
   dataRegistro    DateTime  @default(now()) @map("data_registro") @db.Timestamptz
@@ -75,6 +76,7 @@ model Usuario {
   dataNascimento  DateTime? @map("data_nascimento") @db.Date
   genero          String?   @db.VarChar(30)
   preferencias    Json?     @db.JsonB
+  cnpj            String?   @db.VarChar(14) // CNPJ sem formatação - 14 dígitos
 
   // Relações com outras entidades
   // ...
@@ -90,11 +92,13 @@ model Usuario {
 - **Endpoint**: `POST /api/v1/usuarios`
 - **Descrição**: Registra um novo usuário no sistema
 - **Body**:
+
   ```json
   {
     "nome": "Usuário Teste",
     "email": "usuario@example.com",
-    "senha": "senha12345",
+    "senha": "Senha12345@!",
+    "cpf": "123.456.789-00",
     "fotoPerfilUrl": "https://exemplo.com/foto.jpg",
     "biografia": "Minha biografia",
     "cidade": "São Paulo",
@@ -102,6 +106,22 @@ model Usuario {
     "pais": "Brasil"
   }
   ```
+
+- **Validações**:
+
+  - **Senha**:
+    - Mínimo de 8 caracteres
+    - Deve conter pelo menos uma letra minúscula
+    - Deve conter pelo menos uma letra maiúscula
+    - Deve conter pelo menos um número
+    - Deve conter pelo menos um caractere especial (@$!%\*?&#)
+    - Regex utilizado: `/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/`
+  - **CPF**:
+    - 11 dígitos numéricos
+    - Aceita formatos: "12345678900" ou "123.456.789-00"
+    - A API automaticamente remove pontos e traços para validação e armazenamento
+    - Regex utilizado: `/^(\d{11}|\d{3}\.\d{3}\.\d{3}-\d{2})$/`
+
 - **Resposta (201 Created)**:
   ```json
   {
@@ -114,6 +134,53 @@ model Usuario {
     "cidade": "São Paulo",
     "estado": "SP",
     "pais": "Brasil"
+  }
+  ```
+
+#### Registro de Organizador
+
+- **Endpoint**: `POST /api/v1/usuarios/organizador`
+- **Descrição**: Registra um novo organizador de eventos no sistema
+- **Body**:
+
+  ```json
+  {
+    "nome": "João Silva",
+    "email": "joao@empresa.com",
+    "senha": "Senha12345@!",
+    "fotoPerfilUrl": "https://exemplo.com/foto.jpg",
+    "biografia": "Organizador de eventos esportivos",
+    "cidade": "São Paulo",
+    "estado": "SP",
+    "pais": "Brasil",
+    "nomeEmpresa": "Empresa de Eventos XYZ",
+    "cnpj": "12.345.678/0001-90",
+    "site": "https://empresa.com"
+  }
+  ```
+
+- **Validações**:
+
+  - **Senha**: Mesmas regras do registro normal
+  - **CNPJ**:
+    - 14 dígitos numéricos
+    - Aceita formatos: "12345678000190" ou "12.345.678/0001-90"
+    - A API automaticamente remove pontos, barras e traços para validação e armazenamento
+    - Regex utilizado: `/^(\d{14}|\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})$/`
+
+- **Resposta (201 Created)**:
+  ```json
+  {
+    "id": 1,
+    "nome": "João Silva",
+    "email": "joao@empresa.com",
+    "fotoPerfilUrl": "https://exemplo.com/foto.jpg",
+    "biografia": "Organizador de eventos esportivos",
+    "dataRegistro": "2025-05-08T22:00:00.000Z",
+    "nivelPermissao": 1,
+    "nomeEmpresa": "Empresa de Eventos XYZ",
+    "cnpj": "12345678000190",
+    "site": "https://empresa.com"
   }
   ```
 
@@ -751,5 +818,267 @@ Essas relações permitem implementar funcionalidades como:
 Todas as rotas podem retornar os seguintes erros:
 
 - **400 Bad Request**: Dados inválidos ou relação inexistente
+- **401 Unauthorized**: Token ausente ou inválido
+- **403 Forbidden**: Acesso negado
+- **404 Not Found**: Recurso não encontrado
+- **500 Internal Server Error**: Erro inesperado no servidor
 
-- **verbose()**: Logs detalhados para rastreamento- **debug()**: Informações úteis para debugging- **warn()**: Avisos e situações potencialmente problemáticas- **error()**: Erros e exceções- **log()**: Informações gerais### Níveis de Log Disponíveis`}  }    this.logger.debug('Detalhes da operação');    // ... lógica do método    this.logger.log('Operação iniciada');  async seuMetodo() {  }    this.logger.setContext('SeuServico');  constructor(private readonly logger: CustomLoggerService) {export class SeuServico {@Injectable()`typescriptPara utilizar o logger personalizado em um serviço:## Configuração do Logger`[2024-03-14T10:32:16.123Z] [INFO] [AuthService] Usuário autenticado com sucesso: usuario@example.com[2024-03-14T10:32:15.789Z] [WARN] [AuthService] Tentativa de login falhou para o email: usuario@example.com// Exemplo de log de segurança`typescript- Acessos não autorizados- Alterações de permissões- Validação de tokens JWT- Tentativas de login (sucesso/falha)O sistema mantém logs detalhados de eventos de segurança:### Logs de Segurança`}  // Apenas usuários com nível ADMIN podem acessarasync listarUsuarios() {@Get('usuarios')@Roles(NivelPermissao.ADMIN)`typescriptO sistema implementa controle de acesso baseado em níveis de permissão:### Controle de Acesso Baseado em Níveis`}  }    expiresIn: process.env.JWT_EXPIRES_IN || '1d'  signOptions: {  secret: process.env.JWT_SECRET,{// Exemplo de configuração JWT`typescript- Logging detalhado de tentativas de autenticação- Atualização automática de última atividade- Verificação de usuário ativo- Validação automática de tokens#### Estratégia JWT`}  };    fotoPerfilUrl?: string;    nivelPermissao: number;    email: string;    nome: string;    id: number;  user: {  access_token: string;interface LoginResponse {}  ativo: boolean;  fotoPerfilUrl?: string;  nivelPermissao: number;  email: string;  nome: string;  id: number;interface UserResponse {`typescript#### Validação de UsuárioO sistema de autenticação foi aprimorado com as seguintes características:### Sistema de Autenticação JWT## Autenticação e Autorização`[ERROR] [HttpException] POST /api/v1/auth/login - Status: 401 - Credenciais inválidas[2024-03-14T10:31:00.456Z] // Timestamp em roxo// Exemplo de saída de log de erro`typescriptO filtro de exceções global foi aprimorado para fornecer logs mais detalhados:### Tratamento de Exceções- User Agent e IP do cliente- Tempo de resposta colorido baseado na performance- Tamanho da resposta em bytes- Status code colorido baseado na resposta- Path da requisição em negrito- Método HTTP colorido (GET: azul, POST: verde, etc.)`GET /api/v1/usuarios/1 200 532b - 45ms - Mozilla/5.0... 192.168.1.1[2024-03-14T10:30:45.123Z] // Timestamp em roxo// Exemplo de saída do log de requisição`typescriptO middleware de logging registra informações detalhadas sobre cada requisição HTTP:### Middleware de Logging - `[VERBOSE]` - Magenta para logs detalhados - `[DEBUG]` - Azul para informações de debug - `[WARN]` - Amarelo para avisos - `[ERROR]` - Vermelho em negrito para erros - `[INFO]` - Verde para operações normais- **Níveis de Log Coloridos**:- **Timestamps Coloridos**: Cada log começa com um timestamp em roxo em uma nova linha### Características do Logger PersonalizadoO sistema de logging foi aprimorado para fornecer melhor visibilidade e rastreamento das operações da API:## Sistema de Logging Aprimorado3. Use o token JWT retornado no header `Authorization: Bearer {token}` para acessar endpoints protegidos2. Faça login com POST `/api/v1/auth/login`1. Crie um novo usuário com POST `/api/v1/usuarios`Para testar a API, importe a coleção de endpoints em um cliente REST como Insomnia ou Postman:### Testando com Insomnia/Postman`npm run start:dev# Iniciar servidor de desenvolvimentonpx prisma migrate dev# Executar migrações do PrismaJWT_SECRET="sua_chave_secreta_para_jwt"DATABASE_URL="postgresql://usuario:senha@localhost:5432/nome_do_banco"# Configurar variáveis de ambiente (.env)npm install# Instalar dependências`bash### Instalação e Execução- npm ou yarn- PostgreSQL- Node.js v14 ou superior### Requisitos## Como Testar a API7. Notificações e estatísticas de usuários6. Comentários de perfil e sistema social5. Sistema de medalhas4. Resultados de corridas3. Comentários e fotos de eventos2. Inscrições de usuários em eventos1. Gerenciamento de eventos esportivosOs seguintes recursos estão planejados para implementação futura:## Próximos Passos`http://localhost:3001/api`A API inclui documentação interativa Swagger acessível em:## Documentação Swagger- Transformação de dados para remoção de campos sensíveis- Validação para prevenir injeção de SQL via Prisma- Senhas nunca são retornadas nas respostas da API### Segurança de Dados`const isPasswordValid = await bcrypt.compare(password, user.senhaHash);// Durante a autenticaçãoconst hashedPassword = await bcrypt.hash(createUsuarioDto.senha, 10);// Durante a criação do usuário`typescriptTodas as senhas são processadas com bcrypt antes de serem armazenadas no banco de dados:### Hash de Senhas## Segurança`}  // Outras propriedades...  fotoPerfilUrl?: string;  @IsString()  @IsOptional()  @ApiProperty({ required: false })  senha: string;  @MinLength(8)  @IsString()  @ApiProperty()  email: string;  @IsNotEmpty()  @IsEmail()  @ApiProperty()  nome: string;  @IsNotEmpty()  @IsString()  @ApiProperty()export class CreateUsuarioDto {`typescriptExemplo de DTO com validação:- **ValidationPipe**: Para aplicar validações globalmente- **class-transformer**: Para transformação de tipos- **class-validator**: Para validar propriedades dos DTOsA API implementa validação de dados usando:## Validação de Dados`}  return this.usuarioService.update(+id, updateUsuarioDto);update(@Param('id') id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {@Patch(':id')@ApiBearerAuth()@UseGuards(JwtAuthGuard)`typescriptRotas protegidas utilizam o `JwtAuthGuard` para verificar a autenticação:### Proteção de Rotas4. Os Guards verificam a validade do token antes de permitir acesso a rotas protegidas `   Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...   `3. O cliente deve incluir o token em requisições subsequentes no cabeçalho Authorization:2. A API valida as credenciais e emite um token JWT1. O usuário faz login com email e senhaA API utiliza autenticação baseada em JWT (JSON Web Tokens):## Autenticação e Autorização- **500 Internal Server Error**: Erro interno do servidor- **404 Not Found**: Categoria, evento ou relação não encontrada- **403 Forbidden**: Não tem permissão para acessar esse recurso- **401 Unauthorized**: Token ausente ou inválido
+## Segurança
+
+### Hash de Senhas
+
+Todas as senhas são processadas com bcrypt antes de serem armazenadas no banco de dados:
+
+```typescript
+// Durante a criação do usuário
+const hashedPassword = await bcrypt.hash(createUsuarioDto.senha, 10);
+
+// Durante a autenticação
+const isPasswordValid = await bcrypt.compare(password, user.senhaHash);
+```
+
+### Validação de Formato de Documentos
+
+- **CPF**: A API aceita tanto o formato com pontuação (123.456.789-00) quanto sem (12345678900)
+
+  - Transform: `value.replace(/[^\d]/g, '')` - Remove tudo que não for dígito
+  - Armazenamento: Apenas os 11 dígitos numéricos
+
+- **CNPJ**: A API aceita tanto o formato com pontuação (12.345.678/0001-90) quanto sem (12345678000190)
+  - Transform: `value.replace(/[^\d]/g, '')` - Remove tudo que não for dígito
+  - Armazenamento: Apenas os 14 dígitos numéricos
+
+### Logs de Falhas de Validação
+
+O sistema de logs foi aprimorado para registrar detalhadamente falhas em requisitos de senha:
+
+```typescript
+// Exemplo de log de falha na validação de senha
+[2024-03-14T10:32:15.789Z] [ERROR] [ValidationPipe] Password validation failed: A senha deve conter pelo menos uma letra minúscula, uma maiúscula, um número e um caractere especial
+
+// Exemplo de log de falha na validação de CPF/CNPJ
+[2024-03-14T10:32:15.789Z] [ERROR] [ValidationPipe] Validation failed: CPF deve conter 11 dígitos numéricos, podendo incluir pontos e traço
+```
+
+## Validação de Dados
+
+A API implementa validação de dados usando:
+
+- **class-validator**: Para validar propriedades dos DTOs
+- **class-transformer**: Para transformação de tipos
+- **ValidationPipe**: Para aplicar validações globalmente
+
+Exemplo de DTO com validação de senha e CPF:
+
+```typescript
+export class CreateUsuarioDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  nome: string;
+
+  @ApiProperty()
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({
+    description:
+      'Mínimo 8 caracteres, precisa conter pelo menos uma letra minúscula, uma letra maiúscula, um número e um caractere especial',
+    example: 'Senha12345@!',
+  })
+  @IsString()
+  @MinLength(8)
+  @Matches(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/,
+    {
+      message:
+        'A senha deve conter pelo menos uma letra minúscula, uma maiúscula, um número e um caractere especial',
+    },
+  )
+  senha: string;
+
+  @ApiProperty({
+    example: '123.456.789-00',
+    description: 'CPF do usuário (com ou sem formatação)',
+  })
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value.replace(/[^\d]/g, ''))
+  @Matches(/^(\d{11}|\d{3}\.\d{3}\.\d{3}-\d{2})$/, {
+    message:
+      'CPF deve conter 11 dígitos numéricos, podendo incluir pontos e traço',
+  })
+  cpf?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  fotoPerfilUrl?: string;
+
+  // Outras propriedades...
+}
+```
+
+### Exemplo de DTO para Organizador com Validação de CNPJ
+
+```typescript
+export class CreateOrganizadorDto extends CreateUsuarioDto {
+  @ApiProperty({
+    example: '12.345.678/0001-90',
+    description: 'CNPJ da empresa (com ou sem formatação)',
+  })
+  @IsString()
+  @IsNotEmpty()
+  @Transform(({ value }) => value.replace(/[^\d]/g, ''))
+  @Matches(/^(\d{14}|\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})$/, {
+    message:
+      'CNPJ deve conter 14 dígitos numéricos, podendo incluir pontos, barra e traço',
+  })
+  cnpj: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  nomeEmpresa: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  site?: string;
+}
+```
+
+## Logger
+
+O sistema implementa um logger personalizado para registrar eventos importantes, erros e informações de depuração.
+
+### Níveis de Log Disponíveis
+
+- **verbose()**: Logs detalhados para rastreamento
+- **debug()**: Informações úteis para debugging
+- **warn()**: Avisos e situações potencialmente problemáticas
+- **error()**: Erros e exceções
+- **log()**: Informações gerais
+
+### Configuração do Logger
+
+Para utilizar o logger personalizado em um serviço:
+
+```typescript
+@Injectable()
+export class SeuServico {
+  constructor(private readonly logger: CustomLoggerService) {
+    this.logger.setContext('SeuServico');
+  }
+
+  async seuMetodo() {
+    this.logger.log('Operação iniciada');
+    // ... lógica do método
+    this.logger.debug('Detalhes da operação');
+  }
+}
+```
+
+### Exemplo de Saída de Log
+
+```plaintext
+[2024-03-14T10:32:16.123Z] [INFO] [AuthService] Usuário autenticado com sucesso: usuario@example.com
+[2024-03-14T10:32:15.789Z] [WARN] [AuthService] Tentativa de login falhou para o email: usuario@example.com
+```
+
+### Logs de Segurança
+
+O sistema mantém logs detalhados de eventos de segurança:
+
+- Acessos não autorizados
+- Alterações de permissões
+- Validação de tokens JWT
+- Tentativas de login (sucesso/falha)
+
+### Tratamento de Exceções
+
+O filtro de exceções global foi aprimorado para fornecer logs mais detalhados:
+
+```plaintext
+[ERROR] [HttpException] POST /api/v1/auth/login - Status: 401 - Credenciais inválidas
+[2024-03-14T10:31:00.456Z] // Timestamp em roxo
+```
+
+O middleware de logging registra informações detalhadas sobre cada requisição HTTP:
+
+### Middleware de Logging
+
+- **Níveis de Log Coloridos**:
+  - **Timestamps Coloridos**: Cada log começa com um timestamp em roxo em uma nova linha
+- **Características do Logger Personalizado**
+
+O sistema de logging foi aprimorado para fornecer melhor visibilidade e rastreamento das operações da API:
+
+- Informações de requisição (método, URL, headers, body)
+- Informações de resposta (status, headers, body)
+- Tempo de processamento da requisição
+- Tratamento de erros com logs detalhados
+
+## Como Testar a API
+
+Para testar a API, importe a coleção de endpoints em um cliente REST como Insomnia ou Postman:
+
+1. Crie um novo usuário com POST `/api/v1/usuarios`
+2. Faça login com POST `/api/v1/usuarios/login`
+3. Use o token JWT retornado no header `Authorization: Bearer {token}` para acessar endpoints protegidos
+
+## Instalação e Execução
+
+Requisitos:
+
+- npm ou yarn
+- PostgreSQL
+- Node.js v14 ou superior
+
+Passos:
+
+1. Instale as dependências:
+
+```bash
+npm install
+```
+
+2. Configure as variáveis de ambiente (.env):
+
+```plaintext
+JWT_SECRET="sua_chave_secreta_para_jwt"
+DATABASE_URL="postgresql://usuario:senha@localhost:5432/nome_do_banco"
+```
+
+3. Execute as migrações do Prisma:
+
+```bash
+npx prisma migrate dev
+```
+
+4. Inicie o servidor de desenvolvimento:
+
+```bash
+npm run start:dev
+```
+
+## Próximos Passos
+
+Os seguintes recursos estão planejados para implementação futura:
+
+1. Gerenciamento de eventos esportivos
+2. Inscrições de usuários em eventos
+3. Comentários e fotos de eventos
+4. Resultados de corridas
+5. Sistema de medalhas
+6. Comentários de perfil e sistema social
+7. Notificações e estatísticas de usuários
+
+A API inclui documentação interativa Swagger acessível em: `http://localhost:3001/api`
+
+### Segurança de Dados
+
+- Transformação de dados para remoção de campos sensíveis
+- Validação para prevenir injeção de SQL via Prisma
+- Senhas nunca são retornadas nas respostas da API

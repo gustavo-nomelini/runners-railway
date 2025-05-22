@@ -35,7 +35,6 @@ Todas as rotas podem retornar os seguintes erros:
 - **404 Not Found**: Recurso não encontrado
 - **500 Internal Server Error**: Erro interno do servidor
 
-
 ## Autenticação e Usuários
 
 ### Registro de Usuário Normal
@@ -52,7 +51,8 @@ POST /api/v1/usuarios
 {
   "nome": "Usuário Teste",
   "email": "usuario@example.com",
-  "senha": "senha12345",
+  "senha": "Senha12345@!",
+  "cpf": "123.456.789-00",
   "fotoPerfilUrl": "https://exemplo.com/foto.jpg",
   "biografia": "Minha biografia",
   "cidade": "São Paulo",
@@ -62,6 +62,20 @@ POST /api/v1/usuarios
   "genero": "Masculino"
 }
 ```
+
+**Requisitos de senha:**
+
+- Mínimo 8 caracteres
+- Pelo menos uma letra minúscula
+- Pelo menos uma letra maiúscula
+- Pelo menos um número
+- Pelo menos um caractere especial (@$!%\*?&#)
+
+**Formato de CPF:**
+
+- 11 dígitos numéricos
+- A API aceita tanto o formato com pontuação (123.456.789-00) quanto sem (12345678900)
+- A validação é feita por regex que remove pontos e traços automaticamente
 
 **Resposta (201 Created)**
 
@@ -94,17 +108,31 @@ POST /api/v1/usuarios/organizador
 {
   "nome": "João Silva",
   "email": "joao@empresa.com",
-  "senha": "senha12345",
+  "senha": "Senha12345@!",
   "fotoPerfilUrl": "https://exemplo.com/foto.jpg",
   "biografia": "Organizador de eventos esportivos",
   "cidade": "São Paulo",
   "estado": "SP",
   "pais": "Brasil",
   "nomeEmpresa": "Empresa de Eventos XYZ",
-  "cnpj": "12345678901234",
+  "cnpj": "12.345.678/0001-90",
   "site": "https://empresa.com"
 }
 ```
+
+**Requisitos de senha:**
+
+- Mínimo 8 caracteres
+- Pelo menos uma letra minúscula
+- Pelo menos uma letra maiúscula
+- Pelo menos um número
+- Pelo menos um caractere especial (@$!%\*?&#)
+
+**Formato de CNPJ:**
+
+- 14 dígitos numéricos
+- A API aceita tanto o formato com pontuação (12.345.678/0001-90) quanto sem (12345678000190)
+- A validação é feita por regex que remove pontos, barras e traços automaticamente
 
 **Resposta (201 Created)**
 
@@ -121,7 +149,7 @@ POST /api/v1/usuarios/organizador
   "pais": "Brasil",
   "nivelPermissao": 1,
   "nomeEmpresa": "Empresa de Eventos XYZ",
-  "cnpj": "12345678901234",
+  "cnpj": "12345678000190",
   "site": "https://empresa.com"
 }
 ```

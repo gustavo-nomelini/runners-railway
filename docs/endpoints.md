@@ -1,5 +1,41 @@
 # API Endpoints Documentation
 
+## Níveis de Permissão
+
+O sistema possui os seguintes níveis de permissão:
+
+- **Nível 0 (USUARIO)**: Usuário básico
+
+  - Pode visualizar eventos
+  - Pode se inscrever em eventos
+  - Pode gerenciar seu próprio perfil
+  - Pode ver suas próprias inscrições
+
+- **Nível 1 (ORGANIZADOR)**: Organizador de eventos
+
+  - Todas as permissões do nível 0
+  - Pode criar eventos
+  - Pode gerenciar seus próprios eventos
+  - Pode ver inscritos em seus eventos
+
+- **Nível 2 (ADMIN)**: Administrador do sistema
+  - Todas as permissões dos níveis 0 e 1
+  - Pode gerenciar todos os usuários
+  - Pode gerenciar todos os eventos
+  - Pode alterar níveis de permissão
+  - Pode ver todas as inscrições
+
+## Códigos de Erro
+
+Todas as rotas podem retornar os seguintes erros:
+
+- **400 Bad Request**: Dados inválidos ou mal formatados
+- **401 Unauthorized**: Token ausente ou inválido
+- **403 Forbidden**: Sem permissão para acessar o recurso
+- **404 Not Found**: Recurso não encontrado
+- **500 Internal Server Error**: Erro interno do servidor
+
+
 ## Autenticação e Usuários
 
 ### Registro de Usuário Normal
@@ -739,41 +775,6 @@ Authorization: Bearer {token}
   "message": "Inscrição cancelada com sucesso"
 }
 ```
-
-## Níveis de Permissão
-
-O sistema possui os seguintes níveis de permissão:
-
-- **Nível 0 (USUARIO)**: Usuário básico
-
-  - Pode visualizar eventos
-  - Pode se inscrever em eventos
-  - Pode gerenciar seu próprio perfil
-  - Pode ver suas próprias inscrições
-
-- **Nível 1 (ORGANIZADOR)**: Organizador de eventos
-
-  - Todas as permissões do nível 0
-  - Pode criar eventos
-  - Pode gerenciar seus próprios eventos
-  - Pode ver inscritos em seus eventos
-
-- **Nível 2 (ADMIN)**: Administrador do sistema
-  - Todas as permissões dos níveis 0 e 1
-  - Pode gerenciar todos os usuários
-  - Pode gerenciar todos os eventos
-  - Pode alterar níveis de permissão
-  - Pode ver todas as inscrições
-
-## Códigos de Erro
-
-Todas as rotas podem retornar os seguintes erros:
-
-- **400 Bad Request**: Dados inválidos ou mal formatados
-- **401 Unauthorized**: Token ausente ou inválido
-- **403 Forbidden**: Sem permissão para acessar o recurso
-- **404 Not Found**: Recurso não encontrado
-- **500 Internal Server Error**: Erro interno do servidor
 
 ## Inscrições em Eventos (UsuarioEvento)
 

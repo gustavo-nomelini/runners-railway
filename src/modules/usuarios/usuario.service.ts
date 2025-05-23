@@ -3,9 +3,10 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, Usuario } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { NivelPermissao } from '../../core/enums/nivel-permissao.enum';
+import { APP_CONSTANTS } from '../../shared/constants/app.constants';
 import { CreateOrganizadorDto } from './dtos/create-organizador.dto';
 import { CreateUsuarioDto } from './dtos/create-usuario.dto';
 import { UpdateUsuarioDto } from './dtos/update-usuario.dto';
@@ -14,7 +15,6 @@ import {
   UsuarioNotFoundException,
 } from './exceptions/usuario.exceptions';
 import { UsuarioRepository } from './usuario.repository';
-import { APP_CONSTANTS } from '../../shared/constants/app.constants';
 @Injectable()
 export class UsuarioService {
   constructor(private readonly usuarioRepository: UsuarioRepository) {}
@@ -259,9 +259,14 @@ export class UsuarioService {
   //   return { message: 'Usuário removido com sucesso' };
   // }
 
-  // async findByEmail(email: string) {
-  //   return this.usuarioRepository.findByEmail(email);
-  // }
+  /**
+   * Busca um usuário pelo email
+   * @param email Email do usuário
+   * @returns O usuário encontrado ou null
+   */
+  async findByEmail(email: string) {
+    return this.usuarioRepository.findByEmail(email);
+  }
 
   /**
    * Remover um usuário sendo usuario normal ou organizador

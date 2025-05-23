@@ -3,9 +3,10 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, Usuario } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { NivelPermissao } from '../../core/enums/nivel-permissao.enum';
+import { APP_CONSTANTS } from '../../shared/constants/app.constants';
 import { CreateOrganizadorDto } from './dtos/create-organizador.dto';
 import { CreateUsuarioDto } from './dtos/create-usuario.dto';
 import { UpdateUsuarioDto } from './dtos/update-usuario.dto';
@@ -14,7 +15,6 @@ import {
   UsuarioNotFoundException,
 } from './exceptions/usuario.exceptions';
 import { UsuarioRepository } from './usuario.repository';
-
 @Injectable()
 export class UsuarioService {
   constructor(private readonly usuarioRepository: UsuarioRepository) {}
@@ -245,21 +245,73 @@ export class UsuarioService {
     }
   }
 
-  async remove(id: number) {
-    // Verificar se o usuário existe
-    const existingUser = await this.usuarioRepository.findById(id);
+  // Implementação comentada para remoção de usuário
+  // não permitia excluir organizadores que tivessem corrida
 
-    if (!existingUser) {
+  // async remove(id: number) {
+  //   // Verificar se o usuário existe
+  //   const existingUser = await this.usuarioRepository.findById(id);
+
+  //   if (!existingUser) {
+  //     throw new UsuarioNotFoundException(id);
+  //   }
+
+  //   await this.usuarioRepository.delete(id);
+
+  //   return { message: 'Usuário removido com sucesso' };
+  // }
+
+  /**
+   * Busca um usuário pelo email
+   * @param email Email do usuário
+   * @returns O usuário encontrado ou null
+   */
+  async findByEmail(email: string) {
+    return this.usuarioRepository.findByEmail(email);
+  }
+
+  /**
+   * Remover um usuário sendo usuario normal ou organizador
+   * os eventos do organizador serão transferidos para o organizador desconhecido
+   * o organizador desconhecido é um usuário padrão que não pode ser excluído
+   * e não pode ser editado
+   * @param id
+   * @returns
+   */
+  async remove(id: number): Promise<Usuario> {
+    // Verificar se o usuário existe
+    const usuario = await this.usuarioRepository.findById(id);
+
+    if (!usuario) {
       throw new UsuarioNotFoundException(id);
     }
 
-    await this.usuarioRepository.delete(id);
+    // Usar o ID do PAIZAO das constantes
+    // Note: Convertendo para number já que está armazenado como string
+    const ORGANIZADOR_DESCONHECIDO_ID = Number(APP_CONSTANTS.PAIZAO.ID);
 
-    return { message: 'Usuário removido com sucesso' };
-  }
+    // Verificar se o usuário a ser excluído não é o próprio OrganizadorDesconhecido
+    if (id === ORGANIZADOR_DESCONHECIDO_ID) {
+      throw new BadRequestException('Esta conta não pode ser excluída');
+    }
 
-  async findByEmail(email: string) {
-    return this.usuarioRepository.findByEmail(email);
+    try {
+      // Se for um organizador, transferir eventos
+      if (usuario.nivelPermissao === NivelPermissao.ORGANIZADOR) {
+        // Usando o prisma diretamente ou através do repository
+        await this.usuarioRepository.atualizarEventosDoOrganizador(
+          id,
+          ORGANIZADOR_DESCONHECIDO_ID,
+        );
+      }
+
+      // Excluir o usuário
+      return await this.usuarioRepository.delete(id);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Erro ao excluir usuário: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+      );
+    }
   }
 
   /**

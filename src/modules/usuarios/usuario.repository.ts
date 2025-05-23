@@ -67,4 +67,14 @@ export class UsuarioRepository {
       },
     });
   }
+
+  async atualizarEventosDoOrganizador(
+    organizadorId: number,
+    novoOrganizadorId: number,
+  ): Promise<void> {
+    await this.prisma.evento.updateMany({
+      where: { organizadorId: organizadorId },
+      data: { organizadorId: novoOrganizadorId },
+    });
+  }
 }

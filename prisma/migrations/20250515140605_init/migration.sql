@@ -43,6 +43,7 @@ CREATE TABLE "eventos" (
     "modalidade" VARCHAR(50),
     "site_oficial" VARCHAR(255),
     "data_criacao" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- "curtida" DECIMAL(3,2) NOT NULL DEFAULT 0.0,
     "metadados" JSONB,
 
     CONSTRAINT "eventos_pkey" PRIMARY KEY ("evento_id")

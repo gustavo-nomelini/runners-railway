@@ -11,4 +11,7 @@ export const APP_CONSTANTS = {
     ADMIN: 'admin',
     USER: 'user',
   },
+  PAIZAO: {
+    ID: '1',
+  },
 };

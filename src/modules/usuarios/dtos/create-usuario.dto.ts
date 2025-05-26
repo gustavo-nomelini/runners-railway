@@ -60,15 +60,16 @@ export class CreateUsuarioDto {
   })
   cpf?: string; // tornando campo opcional para o typescript
 
+
   @ApiProperty({
-    example: '1998-10-13',
-    description: 'Data de nascimento do usuário (formato: YYYY-MM-DD)',
+    example: '1998-10-13T00:00:00.000Z',
+    description: 'Data de nascimento no formato ISO-8601',
   })
   @IsOptional()
   @IsDateString()
   @Transform(({ value }) => {
     const date = new Date(value);
-    return date.toISOString().split('T')[0]; // Retorna apenas a parte da data
+    return isNaN(date.getTime()) ? undefined : date.toISOString();
   })
   dataNascimento?: string;
 

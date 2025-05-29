@@ -94,7 +94,6 @@ async function bootstrap() {
   //   }),
   // );
 
-
   // implementação simplificada do ValidationPipe
   app.useGlobalPipes(
     new ValidationPipe({
@@ -105,7 +104,7 @@ async function bootstrap() {
         enableImplicitConversion: true,
       },
     }),
-  ); 
+  );
 
   // CORS Configuration with more secure settings for production
   const allowedOrigins = isProduction
@@ -113,11 +112,13 @@ async function bootstrap() {
         'http://localhost:3000',
         'https://cascavel-runners-teste.vercel.app',
         'https://runners-railway-production.up.railway.app',
+        'https://main.dtyspobbhaezr.amplifyapp.com',
       ]
     : [
         'http://localhost:3000',
         'https://cascavel-runners-teste.vercel.app',
         'https://runners-railway-production.up.railway.app',
+        'https://main.dtyspobbhaezr.amplifyapp.com',
       ];
 
   app.enableCors({
